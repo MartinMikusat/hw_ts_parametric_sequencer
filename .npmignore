@@ -1,0 +1,40 @@
+# Source files
+src/
+tsconfig.json
+vite.config.ts
+
+# Development files
+.vscode/
+.idea/
+*.code-workspace
+
+# Test files
+*.test.ts
+*.spec.ts
+coverage/
+.vitest/
+
+# Build tools
+node_modules/
+.git/
+.gitignore
+
+# Documentation (keep README.md, LICENSE, CHANGELOG.md)
+AGENTS.md
+
+# CI/CD
+.github/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
