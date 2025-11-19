@@ -1,18 +1,31 @@
 import { reconcileKeyframes } from './reconciliation/keyframes/reconcileKeyframes';
-import { reconcile_animationState, type AnimationSnapshot } from './reconciliation/animationState/reconcile_animationState';
+import { reconcile_animationState, type AnimationSnapshot3D } from './reconciliation/animationState/reconcile_animationState';
 import { keyframes_getSceneDuration } from './reconciliation/keyframes/keyframes_getSceneDuration';
 import type { type_reconciliation_node } from './reconciliation/nodes/nodes_reconcile';
 import type { type_separatedKeyframes_extended } from './reconciliation/keyframes/types';
 
-export type SceneDefinition = type_reconciliation_node[];
+/**
+ * Definition of a 3D animation scene as an array of 3D nodes.
+ */
+export type SceneDefinition3D = type_reconciliation_node[];
 
-export type SequencerOptions = {
-    onUpdate?: (state: AnimationSnapshot) => void;
+/**
+ * Options for configuring a Sequencer3D instance.
+ */
+export type SequencerOptions3D = {
+    /** Callback invoked on each animation frame with the current animation state */
+    onUpdate?: (state: AnimationSnapshot3D) => void;
+    /** Callback invoked when animation completes */
     onComplete?: () => void;
+    /** Whether to loop the animation when it reaches the end */
     loop?: boolean;
 };
 
-export class Sequencer {
+/**
+ * Main sequencer class for 3D parametric animations.
+ * Manages animation playback, timing, and state updates for 3D scenes.
+ */
+export class Sequencer3D {
 	private _time = 0;
 	private _duration = 0;
 	private _isPlaying = false;
@@ -22,13 +35,22 @@ export class Sequencer {
 	private _keyframes: type_separatedKeyframes_extended | null = null;
     private _currentSceneModels: Set<any> | null = null;
     
-    private _options: SequencerOptions;
+    private _options: SequencerOptions3D;
 
-	constructor(options: SequencerOptions = {}) {
+	/**
+	 * Creates a new Sequencer3D instance.
+	 * @param options Configuration options for the sequencer
+	 */
+	constructor(options: SequencerOptions3D = {}) {
         this._options = options;
     }
 
-	loadScene(scene: SceneDefinition) {
+	/**
+	 * Loads and reconciles a 3D scene definition.
+	 * This processes all nodes, resolves timing dependencies, and prepares the scene for playback.
+	 * @param scene Array of 3D animation nodes defining the scene
+	 */
+	loadScene(scene: SceneDefinition3D) {
 		this.stop();
 		const reconciled = reconcileKeyframes(scene);
 		this._keyframes = reconciled;
@@ -40,22 +62,38 @@ export class Sequencer {
         this._emitUpdate();
 	}
 
+	/**
+	 * Gets the total duration of the loaded scene in seconds.
+	 */
 	get duration() {
 		return this._duration;
 	}
 
+	/**
+	 * Gets the current playback time in seconds.
+	 */
 	get time() {
 		return this._time;
 	}
 
+	/**
+	 * Gets whether the animation is currently playing.
+	 */
 	get isPlaying() {
 		return this._isPlaying;
 	}
     
+    /**
+     * Gets the set of SceneModel instances in the current scene.
+     */
     get sceneModels() {
         return this._currentSceneModels;
     }
 
+	/**
+	 * Starts playing the animation from the current time position.
+	 * If no scene is loaded, logs a warning and does nothing.
+	 */
 	play() {
 		if (this._isPlaying) return;
 		if (!this._keyframes) {
@@ -68,6 +106,10 @@ export class Sequencer {
 		this._loop();
 	}
 
+	/**
+	 * Pauses the animation at the current time position.
+	 * The animation can be resumed by calling play() again.
+	 */
 	pause() {
 		this._isPlaying = false;
 		if (this._animationFrameId !== null) {
@@ -81,18 +123,32 @@ export class Sequencer {
 		this._previousFrameTime = undefined;
 	}
 
+	/**
+	 * Stops the animation and resets the time to 0.
+	 * This is equivalent to calling pause() followed by setTime(0).
+	 */
 	stop() {
 		this.pause();
 		this._time = 0;
         this._emitUpdate();
 	}
 
+	/**
+	 * Seeks to a specific time in the animation.
+	 * The time will be clamped to the valid range [0, duration].
+	 * @param time The target time in seconds
+	 */
 	setTime(time: number) {
 		this._time = Math.max(0, Math.min(time, this._duration));
         this._emitUpdate();
 	}
 
-	getAnimationState(): AnimationSnapshot | null {
+	/**
+	 * Gets the current animation state snapshot.
+	 * Returns null if no scene is loaded.
+	 * @returns AnimationSnapshot3D containing the state of all models and camera, or null if no scene loaded
+	 */
+	getAnimationState(): AnimationSnapshot3D | null {
 		if (!this._keyframes) return null;
 		return reconcile_animationState(this._keyframes, this._time);
 	}

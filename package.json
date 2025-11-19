@@ -2,18 +2,17 @@
   "name": "hw-ts-parametric-sequencer",
   "version": "0.0.1",
   "description": "A framework-agnostic parametric animation sequencer library",
-  "main": "./dist/index.umd.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
+    "./3d": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.umd.js"
+        "types": "./dist/3d.d.ts",
+        "default": "./dist/3d/index.mjs"
+      }
+    },
+    "./2d": {
+      "import": {
+        "types": "./dist/2d.d.ts",
+        "default": "./dist/2d/index.mjs"
       }
     }
   },

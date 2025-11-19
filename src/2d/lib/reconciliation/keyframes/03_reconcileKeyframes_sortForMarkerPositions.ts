@@ -1,0 +1,291 @@
+import type { type_keyframes_reconciledTimeExtended_camera2D, type_keyframes_reconciledTimeExtended_model2D } from './02_reconcileKeyframes_expandTime';
+import type { type_separatedKeyframes_extended2D } from './types';
+
+/**
+ * Detects cycles in a dependency graph of keyframes using depth-first search.
+ * A cycle occurs when keyframes have circular dependencies (e.g. A depends on B, B depends on C, C depends on A)
+ * @param dependencyGraph Map where keys are keyframe IDs and values are Sets of IDs they depend on
+ * @returns Array of cycles found, where each cycle is an array of keyframe IDs in the dependency loop
+ */
+function detectCycles(dependencyGraph: Map<string, Set<string>>): string[][] {
+	// Tracks nodes we've completely finished processing
+	const visited = new Set<string>();
+	// Tracks nodes currently being processed in the current DFS path
+	const inProgress = new Set<string>();
+	// Stores all found cycles
+	const cycles: string[][] = [];
+
+	/**
+	 * Recursive depth-first search to detect cycles
+	 * @param nodeID Current keyframe ID being processed
+	 * @param path Array tracking the current DFS path (used to reconstruct cycles)
+	 */
+	function dfs(nodeID: string, path: string[] = []) {
+		// If we encounter a node already in the current path, we've found a cycle
+		if (inProgress.has(nodeID)) {
+			// Find where the cycle starts in the current path
+			const cycleStart = path.indexOf(nodeID);
+			if (cycleStart !== -1) {
+				// Slice the path from cycle start to end and add the node again to complete the loop
+				const cycle = path.slice(cycleStart).concat(nodeID);
+				cycles.push(cycle);
+				console.group('Cycle detected in keyframe dependencies:');
+				console.log('Cycle path:', cycle.join(' → '));
+				console.log('Full dependency path:', path.concat(nodeID).join(' → '));
+				console.groupEnd();
+			}
+			return;
+		}
+
+		// Skip if we've already fully processed this node
+		if (visited.has(nodeID)) {
+			return;
+		}
+
+		// Mark as being processed and add to current path
+		inProgress.add(nodeID);
+		path.push(nodeID);
+		
+		// Recursively process all dependencies
+		const dependencies = dependencyGraph.get(nodeID);
+		if (dependencies) {
+			dependencies.forEach((depID) => {
+				dfs(depID, [...path]);
+			});
+		}
+
+		// Done processing this node
+		inProgress.delete(nodeID);
+		visited.add(nodeID);
+	}
+
+	// Start DFS from each unvisited node in the graph
+	console.group('Starting cycle detection in keyframe dependencies');
+	Array.from(dependencyGraph.keys()).forEach((nodeID) => {
+		if (!visited.has(nodeID)) {
+			dfs(nodeID);
+		}
+	});
+	console.groupEnd();
+
+	if (cycles.length > 0) {
+		console.group('Summary of detected cycles');
+		cycles.forEach((cycle, i) => {
+			console.log(`Cycle ${i + 1}: ${cycle.join(' → ')}`);
+		});
+		console.groupEnd();
+	}
+
+	return cycles;
+}
+
+/**
+ * Sorts only the time for camera keyframes (they don't have marker dependencies)
+ */
+const sortCameraKeyframesByTime = (keyframes: Array<type_keyframes_reconciledTimeExtended_camera2D>): Array<type_keyframes_reconciledTimeExtended_camera2D> => {
+	return [...keyframes].sort((a, b) => a.extended.startTime - b.extended.startTime);
+};
+
+/**
+ * Gets the SceneModel ID from a model keyframe
+ */
+const getModelIDFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model2D): string => {
+	if (typeof keyframe.keyframe.sceneModel === 'object' && keyframe.keyframe.sceneModel !== null) {
+		// Access sceneModelID directly from the model
+		const model = keyframe.keyframe.sceneModel as any;
+		if (model.sceneModelID) {
+			return model.sceneModelID;
+		}
+	}
+	console.error(
+		'Invalid sceneModel structure in keyframe - missing sceneModelID property',
+        keyframe.keyframe.sceneModel
+	);
+	return String(keyframe.keyframe.sceneModel);
+};
+
+/**
+ * Checks if a model keyframe has a Marker position
+ */
+const modelKeyframeHasMarkerPosition = (keyframe: type_keyframes_reconciledTimeExtended_model2D): boolean => {
+	return keyframe.keyframe.position?.type === 'marker';
+};
+
+/**
+ * Gets parent SceneModel IDs for a Marker position model keyframe
+ */
+const getParentModelIDsFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model2D): string[] => {
+	if (keyframe.keyframe.position?.type === 'marker') {
+		const markerValue = keyframe.keyframe.position.value;
+
+		// Handle marker with parent reference
+		if (markerValue && typeof markerValue === 'object' && 'parent' in markerValue && markerValue.parent) {
+			const parent = markerValue.parent;
+			if (parent && typeof parent === 'object' && parent.sceneModelID) {
+				return [parent.sceneModelID];
+			}
+			console.error('Marker parent reference missing sceneModelID property', parent);
+			return [];
+		}
+
+		console.error('Marker position without proper parent reference', markerValue);
+		return [];
+	}
+	return [];
+};
+
+/**
+ * Sorts separated keyframes efficiently. Model keyframes are sorted by marker dependencies
+ * and time, while camera keyframes are only sorted by time.
+ *
+ * @param separatedKeyframes Object containing separated model and camera keyframe arrays
+ * @returns Object containing sorted separated keyframe arrays
+ */
+export const sortKeyframesForMarkerPositions2D = (separatedKeyframes: type_separatedKeyframes_extended2D): type_separatedKeyframes_extended2D => {
+	// Camera keyframes only need time sorting (no marker dependencies)
+	const sortedCameraKeyframes = sortCameraKeyframesByTime(separatedKeyframes.cameraKeyframes);
+
+	// Model keyframes need dependency and time sorting
+	const modelKeyframes = separatedKeyframes.modelKeyframes;
+
+	if (modelKeyframes.length === 0) {
+		return {
+			modelKeyframes: [],
+			cameraKeyframes: sortedCameraKeyframes,
+		};
+	}
+
+	// Group keyframes by SceneModel ID
+	const modelKeyframesByModelID = new Map<string, type_keyframes_reconciledTimeExtended_model2D[]>();
+	const initialModelIDs = new Set<string>();
+
+	modelKeyframes.forEach((kf: type_keyframes_reconciledTimeExtended_model2D) => {
+		const modelID = getModelIDFromModelKeyframe(kf);
+		if (!modelKeyframesByModelID.has(modelID)) {
+			modelKeyframesByModelID.set(modelID, []);
+		}
+		modelKeyframesByModelID.get(modelID)!.push(kf);
+		initialModelIDs.add(modelID);
+	});
+
+	const sortedModelIDs: string[] = [];
+	const remainingModelIDs = new Set(initialModelIDs);
+
+	// Track dependency relationships for error reporting
+	const dependsOn = new Map<string, Set<string>>();
+	// Build dependency graph
+	remainingModelIDs.forEach((modelID) => {
+		const modelKeyframes = modelKeyframesByModelID.get(modelID) || [];
+		const markerDependencyKeyframes = modelKeyframes.filter(modelKeyframeHasMarkerPosition);
+
+		if (markerDependencyKeyframes.length > 0) {
+			if (!dependsOn.has(modelID)) {
+				dependsOn.set(modelID, new Set());
+			}
+
+			markerDependencyKeyframes.forEach((kf) => {
+				getParentModelIDsFromModelKeyframe(kf).forEach((parentID) => {
+					dependsOn.get(modelID)?.add(parentID);
+				});
+			});
+		}
+	});
+
+	// Iteratively sort models based on dependencies (Topological Sort)
+	let iterations = 0;
+	const maxIterations = initialModelIDs.size + 10; // Safety break slightly larger than needed
+
+	while (remainingModelIDs.size > 0 && iterations < maxIterations) {
+		iterations++;
+		const newlySortedThisPass: string[] = [];
+
+		remainingModelIDs.forEach((modelID) => {
+			const modelKeyframes = modelKeyframesByModelID.get(modelID) || [];
+			const markerDependencyKeyframes = modelKeyframes.filter(modelKeyframeHasMarkerPosition);
+
+			let canSort = true;
+			if (markerDependencyKeyframes.length > 0) {
+				const parentIDs = new Set<string>();
+				markerDependencyKeyframes.forEach((kf) => {
+					getParentModelIDsFromModelKeyframe(kf).forEach((id) => parentIDs.add(id));
+				});
+
+				// Check if all parents are already sorted (either in previous or current pass)
+				for (const parentID of parentIDs) {
+					if (!sortedModelIDs.includes(parentID) && !newlySortedThisPass.includes(parentID)) {
+						// Dependency not met yet
+						canSort = false;
+						break;
+					}
+				}
+			}
+
+			if (canSort) {
+				newlySortedThisPass.push(modelID);
+			}
+		});
+
+		// Update state for next iteration
+		if (newlySortedThisPass.length === 0) {
+			// No progress made, indicates a cycle or missing dependency
+			// Find and report specific cycles
+			const cycles = detectCycles(dependsOn);
+
+			if (cycles.length > 0) {
+				const cycleDetails = cycles.map((cycle, i) => `  Cycle ${i + 1}: ${cycle.join(' → ')}`).join('\n');
+				throw new Error(
+					`Circular dependencies detected in model keyframes - this will prevent proper animation sorting.\n\n` +
+					`DETECTED CYCLES:\n${cycleDetails}`
+				);
+			} else {
+				// Build detailed error message showing unresolved dependencies
+				const unresolvedDetails: string[] = [];
+				remainingModelIDs.forEach(modelID => {
+					const deps = dependsOn.get(modelID);
+					if (deps && deps.size > 0) {
+						unresolvedDetails.push(`${modelID} (depends on: ${Array.from(deps).join(', ')})`);
+					} else {
+						unresolvedDetails.push(modelID);
+					}
+				});
+
+				const dependencyAnalysis = remainingModelIDs.size <= 5 ?
+					unresolvedDetails.map(detail => `  - ${detail}`).join('\n') :
+					`  - ${Array.from(remainingModelIDs).slice(0, 5).join(', ')} (and ${remainingModelIDs.size - 5} more)`;
+
+				throw new Error(
+					`Failed to sort model keyframes due to unresolved dependencies - animation will not work correctly.\n\n` +
+					`UNSORTED MODELS:\n${dependencyAnalysis}`
+				);
+			}
+		} else {
+			newlySortedThisPass.forEach((modelID) => {
+				sortedModelIDs.push(modelID);
+				remainingModelIDs.delete(modelID);
+			});
+		}
+	}
+
+	if (iterations >= maxIterations && remainingModelIDs.size > 0) {
+		throw new Error(
+			`Exceeded maximum iterations (${maxIterations}) while sorting model keyframes - algorithm safety limit reached.`
+		);
+	}
+
+	// Construct the final sorted array
+	const finalSortedModelKeyframes: type_keyframes_reconciledTimeExtended_model2D[] = [];
+
+	// Add sorted model keyframes (sorting by time within each model)
+	sortedModelIDs.forEach((modelID) => {
+		const keyframesForModel = modelKeyframesByModelID.get(modelID) || [];
+		// Sort keyframes for this model by time
+		const sortedKeyframesForModel = [...keyframesForModel].sort((a, b) => a.extended.startTime - b.extended.startTime);
+		finalSortedModelKeyframes.push(...sortedKeyframesForModel);
+	});
+
+	return {
+		modelKeyframes: finalSortedModelKeyframes,
+		cameraKeyframes: sortedCameraKeyframes,
+	};
+};
+

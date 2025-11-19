@@ -2,25 +2,41 @@ import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import { resolve } from 'path';
 
+const entries = {
+  '3d': resolve(__dirname, 'src/3d/index.ts'),
+  '2d': resolve(__dirname, 'src/2d/index.ts'),
+};
+
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: entries,
       name: 'ParametricSequencer',
-      fileName: (format) => {
-        if (format === 'es') return 'index.mjs';
-        if (format === 'umd') return 'index.umd.js';
-        return `index.${format}.js`;
+      fileName: (format, entryName) => {
+        const base = entryName ?? 'index';
+        return `${base}/index.mjs`;
       },
-      formats: ['es', 'umd'],
+      formats: ['es'],
     },
     rollupOptions: {
       // Externalize deps that shouldn't be bundled
-      external: [], 
+      external: [],
       output: {
         globals: {},
+        entryFileNames: ({ name }) => {
+          const base = name ?? 'index';
+          return `${base}/index.mjs`;
+        },
       },
     },
   },
-  plugins: [dts({ rollupTypes: true })],
+  plugins: [
+    dts({
+      rollupTypes: true,
+      include: ['src/2d', 'src/3d'],
+      outDir: 'dist',
+      entryRoot: 'src',
+      copyDtsFiles: false,
+    }),
+  ],
 });

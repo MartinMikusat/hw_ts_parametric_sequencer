@@ -6,14 +6,14 @@ import type { type_separatedKeyframes_extended, type_keyframe_camera, type_keyfr
 const EPSILON = 1e-6;
 
 // Define the state structures using custom types
-export interface ModelAnimationState {
+export interface ModelAnimationState3D {
 	opacity: number;
 	position: Vector3;
 	rotation: Quaternion;
 	cumulativeModelRotation: Quaternion;
 }
 
-export interface CameraAnimationState {
+export interface CameraAnimationState3D {
 	rotationX: number;
 	rotationY: number;
 	target: Vector3;
@@ -21,13 +21,13 @@ export interface CameraAnimationState {
 }
 
 // Final output structure
-export interface AnimationSnapshot {
-	models: Map<string, ModelAnimationState>;
-	camera: CameraAnimationState;
+export interface AnimationSnapshot3D {
+	models: Map<string, ModelAnimationState3D>;
+	camera: CameraAnimationState3D;
 }
 
 // Default initial camera state
-const defaultCameraState: CameraAnimationState = {
+const defaultCameraState: CameraAnimationState3D = {
 	rotationX: 0.0,
 	rotationY: 0.0,
 	target: new Vector3(0.0, 0.0, 0.0),
@@ -83,9 +83,9 @@ const getModelIDFromKeyframe = (modelKeyframe: type_keyframe_model): string => {
 };
 
 /**
- * Helper to convert keyframe camera state to local CameraAnimationState
+ * Helper to convert keyframe camera state to local CameraAnimationState3D
  */
-const cameraStateFromKeyframe = (keyframe: type_keyframe_camera): CameraAnimationState => {
+const cameraStateFromKeyframe = (keyframe: type_keyframe_camera): CameraAnimationState3D => {
 	return {
 		rotationX: keyframe.rotationX,
 		rotationY: keyframe.rotationY,
@@ -166,8 +166,8 @@ const processPosition = (positionInfo: any, previousPosition: Vector3, progressi
  */
 const _calculateMarkerTransform = (
 	markerData: Extract<type_keyframe_position, { type: 'marker' }>['value'],
-	parentState: ModelAnimationState | undefined,
-	previousState: ModelAnimationState,
+	parentState: ModelAnimationState3D | undefined,
+	previousState: ModelAnimationState3D,
 	progression: number
 ): {
 	finalPosition: Vector3;
@@ -210,8 +210,8 @@ const _calculateMarkerTransform = (
 /**
  * Reconciles the state of all models based on typed model keyframes and current time.
  */
-const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExtended_model>, currentTime: number): Map<string, ModelAnimationState> => {
-	const modelStates = new Map<string, ModelAnimationState>();
+const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExtended_model>, currentTime: number): Map<string, ModelAnimationState3D> => {
+	const modelStates = new Map<string, ModelAnimationState3D>();
 
 	// --- Model State Initialization ---
 	keyframes.forEach((extendedKeyframe) => {
@@ -302,7 +302,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 		}
 
 		// --- Update State Dictionary ---
-		const nextState: ModelAnimationState = {
+		const nextState: ModelAnimationState3D = {
 			opacity: finalOpacity,
 			position: finalPosition,
 			rotation: finalRotation,
@@ -317,7 +317,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 /**
  * Reconciles the camera state based on typed camera keyframes and current time.
  */
-const _reconcileCameraState = (keyframes: Array<type_keyframes_reconciledTimeExtended_camera>, currentTime: number): CameraAnimationState => {
+const _reconcileCameraState = (keyframes: Array<type_keyframes_reconciledTimeExtended_camera>, currentTime: number): CameraAnimationState3D => {
 	const sortedKeyframes = [...keyframes].sort((a, b) => a.reconciled.startTime - b.reconciled.startTime);
 
 	if (sortedKeyframes.length === 0) {
@@ -365,9 +365,9 @@ const _reconcileCameraState = (keyframes: Array<type_keyframes_reconciledTimeExt
  * Uses the efficient separated keyframe pipeline for optimal performance.
  * @param separatedKeyframes Object containing separated model and camera keyframe arrays.
  * @param currentTime The current time in the animation timeline.
- * @returns An AnimationSnapshot containing the state of all models and the camera.
+ * @returns An AnimationSnapshot3D containing the state of all models and the camera.
  */
-export const reconcile_animationState = (separatedKeyframes: type_separatedKeyframes_extended, currentTime: number): AnimationSnapshot => {
+export const reconcile_animationState = (separatedKeyframes: type_separatedKeyframes_extended, currentTime: number): AnimationSnapshot3D => {
 	// Process keyframes directly without any type checking
 	const modelStates = _reconcileModelStates(separatedKeyframes.modelKeyframes, currentTime);
 	const cameraState = _reconcileCameraState(separatedKeyframes.cameraKeyframes, currentTime);
