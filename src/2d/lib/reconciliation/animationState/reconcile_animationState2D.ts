@@ -53,7 +53,7 @@ const getModelIDFromKeyframe = (modelKeyframe: type_keyframe_model2D): string =>
  */
 const cameraStateFromKeyframe = (keyframe: type_keyframe_camera2D): CameraAnimationState2D => {
 	return {
-		pan: createVector2FromInput(keyframe.pan as any),
+		pan: createVector2FromInput(keyframe.pan),
 		zoom: keyframe.zoom,
 		rotation: keyframe.rotation,
 	};

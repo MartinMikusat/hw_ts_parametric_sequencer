@@ -159,7 +159,7 @@ const createQuaternionFromEuler = (
 ): Quaternion => {
 	const { x, y, z, order } = Array.isArray(rotValues)
 		? { x: Number(rotValues[0]), y: Number(rotValues[1]), z: Number(rotValues[2]), order: 'XYZ' as Euler['order'] }
-		: { x: rotValues.x, y: rotValues.y, z: rotValues.z, order: (rotValues as any).order ?? 'XYZ' };
+		: { x: rotValues.x, y: rotValues.y, z: rotValues.z, order: (rotValues as { order?: Euler['order'] }).order ?? 'XYZ' };
 
 	// Convert degrees to radians before constructing the math Euler
 	const xRad = x * Math.PI / 180;
@@ -189,7 +189,7 @@ const cameraStateFromKeyframe = (keyframe: type_keyframe_camera): CameraAnimatio
 	return {
 		rotationX: keyframe.rotationX,
 		rotationY: keyframe.rotationY,
-		target: createVector3FromInput(keyframe.target as any), // Cast as any because target might be array in raw json but typed as Vector3
+		target: createVector3FromInput(keyframe.target),
 		zoom: keyframe.zoom,
 	};
 };
@@ -287,13 +287,13 @@ const _calculateMarkerTransform = (
 	const parentOpacity = parentState.opacity;
 
 	// --- Position Calculation ---
-	const markerLocalPosUnrotated = createVector3FromInput(markerData.position as any);
+	const markerLocalPosUnrotated = createVector3FromInput(markerData.position);
 	const markerWorldOffset = markerLocalPosUnrotated.clone().applyQuaternion(parentRotation);
 	const endPositionWorld = new Vector3().copy(parentPosition).add(markerWorldOffset);
 	const finalPosition = new Vector3().copy(previousState.position).lerp(endPositionWorld, progression);
 
 	// --- Rotation Calculation ---
-	const markerBaseQuat = createQuaternionFromEuler(markerData.rotation as any);
+	const markerBaseQuat = createQuaternionFromEuler(markerData.rotation);
 
 	// Simplified: Assumes no offsetRotation based on type definition
 	const targetLocalToParent = markerBaseQuat;

@@ -47,7 +47,7 @@ function detectCycles(dependencyGraph: Map<string, Set<string>>): string[][] {
 		// Mark as being processed and add to current path
 		inProgress.add(nodeID);
 		path.push(nodeID);
-		
+
 		// Recursively process all dependencies
 		const dependencies = dependencyGraph.get(nodeID);
 		if (dependencies) {
@@ -94,14 +94,14 @@ const sortCameraKeyframesByTime = (keyframes: Array<type_keyframes_reconciledTim
 const getModelIDFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model): string => {
 	if (typeof keyframe.keyframe.sceneModel === 'object' && keyframe.keyframe.sceneModel !== null) {
 		// Access sceneModelID directly from the model
-		const model = keyframe.keyframe.sceneModel as any;
+		const model = keyframe.keyframe.sceneModel;
 		if (model.sceneModelID) {
 			return model.sceneModelID;
 		}
 	}
 	console.error(
 		'Invalid sceneModel structure in keyframe - missing sceneModelID property',
-        keyframe.keyframe.sceneModel
+		keyframe.keyframe.sceneModel
 	);
 	return String(keyframe.keyframe.sceneModel);
 };
