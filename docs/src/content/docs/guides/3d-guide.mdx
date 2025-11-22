@@ -1,0 +1,189 @@
+---
+title: 3D Animations Guide
+description: Learn how to create 3D animation sequences
+---
+
+## Overview
+
+The 3D animation system provides full 3D scene control with position, rotation (quaternion-based), opacity, and hierarchical marker-based positioning.
+
+## Key Features
+
+- **Quaternion rotations**: Smooth SLERP interpolation for rotations
+- **Vector3 positions**: Full 3D coordinate system
+- **Hierarchical positioning**: Marker-based attachment system
+- **Camera control**: Full 3D camera with rotation, target, and zoom
+- **Euler angles**: Support for all rotation orders
+
+## Basic 3D Animation
+
+```typescript
+import { Sequencer3D, NodeMain, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+
+const model = new SceneModel({ name: 'Mesh' }, 'mesh1', {});
+
+const scene = [
+  new NodeMain({
+    name: 'move-mesh',
+    chapter: 'intro',
+    sceneModel: model,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector3(1, 0, 0) },
+    rotation: { type: 'relative', value: new Euler(0, 90, 0) },
+    opacity: 1.0
+  })
+];
+
+const sequencer = new Sequencer3D({
+  onUpdate: (state) => {
+    state.models.forEach((modelState, modelID) => {
+      // Update your 3D rendering (e.g., Three.js)
+      updateMesh(modelID, {
+        position: modelState.position,
+        rotation: modelState.rotation, // Quaternion
+        opacity: modelState.opacity
+      });
+    });
+    updateCamera(state.camera);
+  }
+});
+
+sequencer.loadScene(scene);
+sequencer.play();
+```
+
+## Camera Animation
+
+```typescript
+import { NodeCamera, Vector3 } from 'hw-ts-parametric-sequencer/3d';
+
+const cameraNode = new NodeCamera({
+  name: 'camera-rotate',
+  chapter: 'intro',
+  time: { type: 'absolute', value: 0 },
+  duration: 2,
+  rotationX: 45, // Pitch up
+  rotationY: -30, // Yaw left
+  target: new Vector3(0, 0, 0), // Look at origin
+  zoom: 1.2 // Zoom in
+});
+```
+
+## Relative Timing
+
+```typescript
+// Start camera animation 0.5 seconds after model animation starts
+const cameraNode = new NodeCamera({
+  name: 'camera-follow',
+  chapter: 'intro',
+  time: {
+    type: 'relative',
+    value: {
+      offset: 0.5,
+      side: 'Start',
+      parentID: 'move-mesh'
+    }
+  },
+  duration: 1.5,
+  rotationX: 0,
+  rotationY: 0,
+  target: new Vector3(0, 0, 0),
+  zoom: 1.0
+});
+```
+
+## Hierarchical Positioning with Markers
+
+```typescript
+import { NodeToMarkerPosition } from 'hw-ts-parametric-sequencer/3d';
+
+// Create a parent model with a marker
+const parentModel = new SceneModel(
+  { name: 'Parent' },
+  'parent',
+  {
+    'attachment-point': {
+      position: new Vector3(0, 1, 0),
+      rotation: new Euler(0, 0, 0)
+    }
+  }
+);
+
+// Position a child model relative to the marker
+const marker = parentModel.getMarker('attachment-point');
+const attachNode = new NodeToMarkerPosition({
+  name: 'attach-part',
+  chapter: 'assembly',
+  sceneModel: childModel,
+  time: { type: 'absolute', value: 2 },
+  marker: marker,
+  offset_position: new Vector3(0, 0, 0),
+  offset_rotation: new Euler(0, 0, 0),
+  reveal: {
+    duration: 0.5,
+    delay: 0
+  },
+  slotting: {
+    duration: 1,
+    delay: 0.2
+  }
+});
+```
+
+## Reveal and Hide Animations
+
+```typescript
+import { NodeBasicReveal, NodeBasicHide, Vector3, Euler } from 'hw-ts-parametric-sequencer/3d';
+
+// Reveal a model with fade-in and position animation
+const reveal = new NodeBasicReveal({
+  name: 'reveal-model',
+  chapter: 'intro',
+  sceneModel: model,
+  time: { type: 'absolute', value: 0 },
+  duration: 1,
+  startingPosition: new Vector3(-10, 0, 0),
+  startingRotation: new Euler(0, 0, 0)
+});
+
+// Hide a model with fade-out
+const hide = new NodeBasicHide({
+  name: 'hide-model',
+  chapter: 'outro',
+  sceneModel: model,
+  time: { type: 'absolute', value: 5 },
+  duration: 1,
+  offsetPosition: new Vector3(0, -5, 0),
+  offsetRotation: new Euler(0, 180, 0)
+});
+```
+
+## Rotation Types
+
+The library supports three rotation types:
+
+### Absolute Rotation
+```typescript
+rotation: {
+  type: 'absolute',
+  value: new Euler(0, 90, 0) // World-space rotation
+}
+```
+
+### Relative Rotation
+```typescript
+rotation: {
+  type: 'relative',
+  value: new Euler(0, 45, 0) // Offset from current rotation
+}
+```
+
+### World Space Rotation
+```typescript
+rotation: {
+  type: 'worldSpace',
+  value: new Euler(0, 90, 0) // Rotation in world space (ignores parent transforms)
+}
+```
+

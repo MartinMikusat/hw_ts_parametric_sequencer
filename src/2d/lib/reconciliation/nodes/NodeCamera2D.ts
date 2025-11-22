@@ -3,19 +3,64 @@ import type { type_keyframe_camera2D, type_time } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeCamera2D instance.
+ * 
+ * NodeCamera2D animates the camera's pan, zoom, and rotation.
  */
 export interface NodeCamera2DProps {
+	/** 
+	 * Unique identifier for this node.
+	 */
 	name: string;
+	
+	/** 
+	 * Chapter identifier for organizing animations.
+	 */
 	chapter: string;
+	
+	/** 
+	 * Duration of this camera animation in seconds.
+	 */
 	duration: number;
+	
+	/** 
+	 * Timing specification for when this camera animation starts.
+	 */
 	time: type_time;
+	
+	/** 
+	 * The pan offset of the camera in 2D space.
+	 */
 	pan: Vector2;
+	
+	/** 
+	 * The zoom level. Values > 1 zoom in, values < 1 zoom out.
+	 */
 	zoom: number;
-	rotation: number; // Angle in degrees
+	
+	/** 
+	 * The rotation angle of the camera in degrees.
+	 */
+	rotation: number;
 }
 
 /**
- * Represents a 2D camera node in the reconciliation process.
+ * Represents a camera animation node for 2D scenes.
+ * 
+ * NodeCamera2D is used to animate the camera's pan, zoom, and rotation.
+ * Camera animations are interpolated linearly between keyframes.
+ * 
+ * @example
+ * ```typescript
+ * const cameraNode = new NodeCamera2D({
+ *   name: 'camera-intro',
+ *   chapter: 'intro',
+ *   time: { type: 'absolute', value: 0 },
+ *   duration: 2,
+ *   pan: new Vector2(50, 0),
+ *   zoom: 1.2,
+ *   rotation: 15
+ * });
+ * ```
  */
 export class NodeCamera2D {
 	name: string;
@@ -37,8 +82,11 @@ export class NodeCamera2D {
 	}
 
 	/**
-	 * Reconciles the camera node's properties into an array of camera keyframes.
-	 * @returns An array containing a single camera keyframe representing the 2D camera state.
+	 * Reconciles this node into camera keyframes for the animation system.
+	 * 
+	 * @returns An array containing a single camera keyframe representing this camera state.
+	 * 
+	 * @internal
 	 */
 	reconcile(): Array<type_keyframe_camera2D> {
 		const keyframes: Array<type_keyframe_camera2D> = [

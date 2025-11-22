@@ -163,3 +163,9 @@ storybook-static/
 tmp/
 temp/
 
+# Documentation
+docs/.astro/
+docs/dist/
+docs/node_modules/
+docs/api/
+

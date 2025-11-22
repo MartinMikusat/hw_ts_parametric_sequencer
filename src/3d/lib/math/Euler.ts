@@ -1,8 +1,41 @@
 import { Quaternion } from './Quaternion';
 
+/**
+ * The order in which Euler angle rotations are applied.
+ * 
+ * Different orders can produce different final orientations for the same angle values.
+ * The most common order is 'XYZ'.
+ */
 export type EulerOrder = 'XYZ' | 'YZX' | 'ZXY' | 'XZY' | 'YXZ' | 'ZYX';
 
+/**
+ * Represents Euler angles (rotation around x, y, z axes) in radians.
+ * 
+ * Euler angles provide an intuitive way to specify rotations but can suffer from gimbal lock.
+ * The library converts Euler angles to quaternions internally for smooth interpolation.
+ * 
+ * @remarks
+ * All angles are stored in radians internally, but the public API accepts degrees
+ * which are converted to radians automatically.
+ * 
+ * @example
+ * ```typescript
+ * // Create Euler angles (in radians)
+ * const rotation = new Euler(Math.PI / 4, Math.PI / 2, 0, 'XYZ');
+ * 
+ * // Convert to quaternion for smooth interpolation
+ * const quat = new Quaternion().setFromEuler(rotation);
+ * ```
+ */
 export class Euler {
+  /**
+   * Creates a new Euler instance.
+   * 
+   * @param x - Rotation around the x-axis in radians. Defaults to 0.
+   * @param y - Rotation around the y-axis in radians. Defaults to 0.
+   * @param z - Rotation around the z-axis in radians. Defaults to 0.
+   * @param order - The order in which rotations are applied. Defaults to 'XYZ'.
+   */
   constructor(
     public x = 0,
     public y = 0,
@@ -10,6 +43,15 @@ export class Euler {
     public order: EulerOrder = 'XYZ'
   ) {}
 
+  /**
+   * Sets the x, y, z components and optionally the order of this Euler.
+   * 
+   * @param x - Rotation around the x-axis in radians.
+   * @param y - Rotation around the y-axis in radians.
+   * @param z - Rotation around the z-axis in radians.
+   * @param order - Optional rotation order. If not provided, keeps the current order.
+   * @returns This Euler for method chaining.
+   */
   set(x: number, y: number, z: number, order?: EulerOrder): this {
     this.x = x;
     this.y = y;
@@ -18,6 +60,12 @@ export class Euler {
     return this;
   }
 
+  /**
+   * Copies the x, y, z components and order from another Euler to this Euler.
+   * 
+   * @param e - The Euler to copy from.
+   * @returns This Euler for method chaining.
+   */
   copy(e: Euler): this {
     this.x = e.x;
     this.y = e.y;
@@ -26,10 +74,26 @@ export class Euler {
     return this;
   }
 
+  /**
+   * Creates a new Euler with the same x, y, z values and order as this Euler.
+   * 
+   * @returns A new Euler instance.
+   */
   clone(): Euler {
     return new Euler(this.x, this.y, this.z, this.order);
   }
 
+  /**
+   * Sets this Euler from a quaternion.
+   * 
+   * Converts a quaternion rotation to Euler angles. The conversion respects
+   * the specified rotation order.
+   * 
+   * @param q - The quaternion to convert from.
+   * @param order - Optional rotation order. If not provided, uses this Euler's current order.
+   * @param _update - Internal parameter, not used.
+   * @returns This Euler for method chaining.
+   */
   setFromQuaternion(q: Quaternion, order?: EulerOrder, _update?: boolean): this {
     const matrix = this.matrixFromQuaternion(q);
     return this.setFromRotationMatrix(matrix, order);
@@ -127,6 +191,13 @@ export class Euler {
     return this;
   }
 
+  /**
+   * Writes the x, y, z components of this Euler to an array.
+   * 
+   * @param array - The array to write to. If not provided, a new array is created.
+   * @param offset - The offset in the array to start writing at. Defaults to 0.
+   * @returns The array that was written to.
+   */
   toArray(array: number[] = [], offset = 0): number[] {
     array[offset] = this.x;
     array[offset + 1] = this.y;

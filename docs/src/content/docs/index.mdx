@@ -1,0 +1,72 @@
+---
+title: Welcome
+description: A framework-agnostic TypeScript library for creating parametric animation sequences
+template: splash
+hero:
+  tagline: Create complex animation sequences with relative timing dependencies
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Get Started
+      link: /getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/MartinMikusat/hw_ts_parametric_sequencer
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+	<Card title="2D & 3D Support" icon="rocket">
+		Separate implementations optimized for each dimension with complete tree-shaking support.
+	</Card>
+	<Card title="Parametric Animations" icon="pencil">
+		Define animations with relative timing dependencies for complex sequences.
+	</Card>
+	<Card title="Camera Control" icon="camera">
+		Animate camera properties (2D: pan/zoom/rotation, 3D: rotation/zoom/target).
+	</Card>
+	<Card title="Relative Positioning" icon="link">
+		Use markers for hierarchical positioning in 3D or simple offsets in 2D.
+	</Card>
+	<Card title="Smooth Interpolation" icon="chart">
+		Linear interpolation for positions, SLERP for 3D rotations, shortest-arc for 2D angles.
+	</Card>
+	<Card title="Framework Agnostic" icon="code">
+		Pure TypeScript with no framework dependencies. Works with any rendering library.
+	</Card>
+</CardGrid>
+
+## Quick Start
+
+```typescript
+import { Sequencer3D, NodeMain, Vector3, Euler } from 'hw-ts-parametric-sequencer/3d';
+
+const sequencer = new Sequencer3D({
+  onUpdate: (state) => {
+    // Update your 3D scene
+    state.models.forEach((modelState, modelID) => {
+      updateModel(modelID, modelState);
+    });
+    updateCamera(state.camera);
+  }
+});
+
+const scene = [
+  new NodeMain({
+    name: 'move-model',
+    chapter: 'intro',
+    sceneModel: myModel,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector3(1, 0, 0) }
+  })
+];
+
+sequencer.loadScene(scene);
+sequencer.play();
+```

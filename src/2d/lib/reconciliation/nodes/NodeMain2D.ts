@@ -3,21 +3,79 @@ import type { type_keyframe_model2D, type_keyframe_position2D, type_keyframe_rot
 
 /**
  * Properties required to create a NodeMain2D instance.
+ * 
+ * NodeMain2D is the primary node type for animating 2D models with position, angle, opacity, and scale changes.
  */
 export interface NodeMain2DProps {
+	/** 
+	 * Unique identifier for this node. Used as the keyframe ID and for relative timing references.
+	 * Must be unique within the scene definition.
+	 */
 	name: string;
+	
+	/** 
+	 * Chapter identifier for organizing animations into logical groups.
+	 */
 	chapter: string;
+	
+	/** 
+	 * The SceneModel2D instance to animate.
+	 */
 	sceneModel: SceneModel2D;
+	
+	/** 
+	 * Timing specification for when this animation starts.
+	 */
 	time: type_time;
+	
+	/** 
+	 * Duration of this animation in seconds.
+	 */
 	duration: number;
+	
+	/** 
+	 * Optional 2D position change for the model.
+	 * Can be absolute (world position) or relative (offset from current).
+	 */
 	position?: type_keyframe_position2D;
+	
+	/** 
+	 * Optional rotation angle change for the model in degrees.
+	 * Can be absolute (world angle) or relative (offset from current).
+	 */
 	rotation?: type_keyframe_rotation2D;
+	
+	/** 
+	 * Optional opacity value, ranging from 0 (transparent) to 1 (opaque).
+	 */
 	opacity?: number;
+	
+	/** 
+	 * Optional scale factor. Values > 1 enlarge, values < 1 shrink.
+	 */
 	scale?: number;
 }
 
 /**
- * Represents a main 2D animation node in the reconciliation process.
+ * Represents a main animation node for 2D models.
+ * 
+ * NodeMain2D is used to animate a model's position, angle, opacity, and/or scale over time.
+ * It's the most commonly used node type for basic 2D model animations.
+ * 
+ * @example
+ * ```typescript
+ * const node = new NodeMain2D({
+ *   name: 'model1-move',
+ *   chapter: 'intro',
+ *   sceneModel: myModel,
+ *   time: { type: 'absolute', value: 0 },
+ *   duration: 2,
+ *   position: { type: 'absolute', value: new Vector2(100, 50) },
+ *   rotation: { type: 'relative', value: 90 },
+ *   opacity: 1.0,
+ *   scale: 1.5
+ * });
+ * ```
  */
 export class NodeMain2D {
 	name: string;
@@ -43,16 +101,20 @@ export class NodeMain2D {
 	}
 
 	/**
-	 * Used for other keyframes to use as a reference when using relative time.
-	 * @returns The node's name as the keyframe ID.
+	 * Gets the relative ID used for timing references.
+	 * 
+	 * @returns The node's name, which serves as the keyframe ID for relative timing.
 	 */
 	getRelativeID(): string {
 		return this.name;
 	}
 
 	/**
-	 * Reconciles the node's properties into an array of keyframes.
-	 * @returns An array containing a single keyframe model representing the 2D state.
+	 * Reconciles this node into keyframes for the animation system.
+	 * 
+	 * @returns An array containing a single keyframe model representing this animation state.
+	 * 
+	 * @internal
 	 */
 	reconcile(): Array<type_keyframe_model2D> {
 		const keyframeID = this.getRelativeID();

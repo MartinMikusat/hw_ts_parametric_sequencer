@@ -5,30 +5,109 @@ import type { type_keyframe_model, type_keyframes, type_time } from '../keyframe
 
 /**
  * Properties required to create a NodeToMarkerPosition instance.
+ * 
+ * NodeToMarkerPosition positions a model relative to a marker on another model, with optional reveal and slotting animations.
  */
 export interface NodeToMarkerPositionProps {
+	/** 
+	 * Unique identifier for this node. Used as the keyframe ID and for relative timing references.
+	 */
 	name: string;
+	
+	/** 
+	 * Chapter identifier for organizing animations into logical groups.
+	 */
 	chapter: string;
+	
+	/** 
+	 * The SceneModel instance to position.
+	 */
 	sceneModel: SceneModel;
+	
+	/** 
+	 * Timing specification for when this animation starts.
+	 */
 	time: type_time;
+	
+	/** 
+	 * The marker on the parent model to position relative to.
+	 * Must include parent reference for hierarchical positioning.
+	 */
 	marker: type_sceneModel_marker_withParent;
+	
+	/** 
+	 * Position offset relative to the marker's position.
+	 */
 	offset_position: Vector3;
+	
+	/** 
+	 * Optional rotation offset relative to the marker's rotation.
+	 * Defaults to (0, 0, 0) if not specified.
+	 */
 	offset_rotation?: Euler;
-	// Optional slotting definition
+	
+	/** 
+	 * Optional slotting animation configuration.
+	 * Slotting is the final animation that positions the model precisely at the marker.
+	 */
 	slotting?: {
+		/** Duration of the slotting animation in seconds. */
 		duration: number;
+		/** Delay before slotting starts, relative to reveal keyframe end. */
 		delay: number;
-		id?: string; // Optional custom ID for slotting keyframe
+		/** Optional custom ID for the slotting keyframe. Defaults to `${name}-slotted`. */
+		id?: string;
 	};
-	// Optional reveal definition
+	
+	/** 
+	 * Optional reveal animation configuration.
+	 * Reveal makes the model visible before slotting.
+	 */
 	reveal?: {
+		/** Duration of the reveal animation in seconds. */
 		duration: number;
-		delay: number; // Delay is relative to initial keyframe end
+		/** Delay before reveal starts, relative to initial keyframe end. */
+		delay: number;
 	};
 }
 
 /**
- * Represents a node that moves a scene model to a marker position, including reveal and slotting animations.
+ * Represents a node that positions a model relative to a marker on another model.
+ * 
+ * NodeToMarkerPosition creates a hierarchical positioning animation where a model is positioned
+ * relative to a marker on a parent model. This enables complex assembly animations where parts
+ * attach to other parts.
+ * 
+ * @remarks
+ * This node generates three keyframes:
+ * 1. Initial state: Model is invisible at the marker position with offset
+ * 2. Reveal: Model fades in (if reveal is configured)
+ * 3. Slotting: Model animates to the final marker position
+ * 
+ * The marker's position and rotation are transformed by the parent model's transform,
+ * creating hierarchical positioning in 3D space.
+ * 
+ * @example
+ * ```typescript
+ * const marker = parentModel.getMarker('attachment-point');
+ * const node = new NodeToMarkerPosition({
+ *   name: 'attach-part',
+ *   chapter: 'assembly',
+ *   sceneModel: partModel,
+ *   time: { type: 'absolute', value: 5 },
+ *   marker: marker,
+ *   offset_position: new Vector3(0, 0, 0),
+ *   offset_rotation: new Euler(0, 0, 0),
+ *   reveal: {
+ *     duration: 0.5,
+ *     delay: 0
+ *   },
+ *   slotting: {
+ *     duration: 1,
+ *     delay: 0.2
+ *   }
+ * });
+ * ```
  */
 // Helper: convert a degrees-based Euler-ish input (plain object or Euler) to a radians Euler
 const toRadiansEuler = (deg: { x: number; y: number; z: number; order?: Euler['order'] } | Euler): Euler => {
@@ -77,17 +156,21 @@ export class NodeToMarkerPosition {
 	}
 
 	/**
-	 * Used for other keyframes to use as a reference when using relative time.
-	 * Defaults to `${this.name}-slotted` if no specific ID is provided in slotting props.
-	 * @returns The relative ID string for the slotting keyframe.
+	 * Gets the relative ID used for timing references.
+	 * 
+	 * @returns The slotting keyframe ID, which can be referenced by other nodes for relative timing.
+	 *          Defaults to `${name}-slotted` if no custom ID is provided in slotting configuration.
 	 */
 	getRelativeID(): string {
 		return this.slotting.id ?? `${this.name}-slotted`;
 	}
 
 	/**
-	 * Reconciles the node's properties into an array of keyframes representing its initial state, reveal, and slotting animations.
-	 * @returns An array of keyframe models.
+	 * Reconciles this node into keyframes for the animation system.
+	 * 
+	 * @returns An array containing three keyframes: initial state, reveal, and slotting animations.
+	 * 
+	 * @internal
 	 */
 	reconcile(): Array<type_keyframes> {
 		const initialKeyframeID = `${this.name}-initial`;

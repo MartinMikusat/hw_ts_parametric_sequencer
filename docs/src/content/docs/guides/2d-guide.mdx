@@ -1,0 +1,141 @@
+---
+title: 2D Animations Guide
+description: Learn how to create 2D animation sequences
+---
+
+## Overview
+
+The 2D animation system provides a simplified API for 2D scenes with position, angle, opacity, and scale animations.
+
+## Key Differences from 3D
+
+- **Angles instead of rotations**: Uses degrees for rotation angles
+- **Vector2 instead of Vector3**: 2D positions use x and y components
+- **Scale support**: 2D models can be scaled
+- **Simpler camera**: Pan, zoom, and rotation instead of full 3D camera control
+- **No quaternions**: Direct angle interpolation using shortest-arc
+
+## Basic 2D Animation
+
+```typescript
+import { Sequencer2D, NodeMain2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+
+const model = new SceneModel2D({ name: 'Sprite' }, 'sprite1', {});
+
+const scene = [
+  new NodeMain2D({
+    name: 'move-sprite',
+    chapter: 'intro',
+    sceneModel: model,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector2(100, 50) },
+    rotation: { type: 'relative', value: 90 }, // degrees
+    opacity: 1.0,
+    scale: 1.5
+  })
+];
+
+const sequencer = new Sequencer2D({
+  onUpdate: (state) => {
+    state.models.forEach((modelState, modelID) => {
+      // Update your 2D rendering
+      drawSprite(modelID, {
+        x: modelState.position.x,
+        y: modelState.position.y,
+        angle: modelState.rotation,
+        opacity: modelState.opacity,
+        scale: modelState.scale
+      });
+    });
+  }
+});
+
+sequencer.loadScene(scene);
+sequencer.play();
+```
+
+## Camera Animation
+
+```typescript
+import { NodeCamera2D, Vector2 } from 'hw-ts-parametric-sequencer/2d';
+
+const cameraNode = new NodeCamera2D({
+  name: 'camera-pan',
+  chapter: 'intro',
+  time: { type: 'absolute', value: 0 },
+  duration: 2,
+  pan: new Vector2(50, 0), // Pan right
+  zoom: 1.2, // Zoom in
+  rotation: 15 // Rotate 15 degrees
+});
+```
+
+## Relative Timing
+
+```typescript
+// Start camera animation 0.5 seconds after model animation starts
+const cameraNode = new NodeCamera2D({
+  name: 'camera-follow',
+  chapter: 'intro',
+  time: {
+    type: 'relative',
+    value: {
+      offset: 0.5,
+      side: 'Start',
+      parentID: 'move-sprite'
+    }
+  },
+  duration: 1.5,
+  pan: new Vector2(0, 0),
+  zoom: 1.0,
+  rotation: 0
+});
+```
+
+## Reveal and Hide Animations
+
+```typescript
+import { NodeBasicReveal2D, NodeBasicHide2D, Vector2 } from 'hw-ts-parametric-sequencer/2d';
+
+// Reveal a sprite with fade-in
+const reveal = new NodeBasicReveal2D({
+  name: 'reveal-sprite',
+  chapter: 'intro',
+  sceneModel: model,
+  time: { type: 'absolute', value: 0 },
+  duration: 1,
+  startingPosition: new Vector2(-100, 0),
+  startingRotation: 0
+});
+
+// Hide a sprite with fade-out
+const hide = new NodeBasicHide2D({
+  name: 'hide-sprite',
+  chapter: 'outro',
+  sceneModel: model,
+  time: { type: 'absolute', value: 5 },
+  duration: 1,
+  offsetPosition: new Vector2(0, -50), // Move down while hiding
+  offsetRotation: 180 // Rotate while hiding
+});
+```
+
+## Marker-Based Positioning
+
+```typescript
+import { NodeToMarkerPosition2D } from 'hw-ts-parametric-sequencer/2d';
+
+// Position a model relative to a marker on another model
+const marker = parentModel.getMarker('attachment-point');
+const attachNode = new NodeToMarkerPosition2D({
+  name: 'attach-part',
+  chapter: 'assembly',
+  sceneModel: partModel,
+  time: { type: 'absolute', value: 2 },
+  marker: marker,
+  offset_position: new Vector2(0, 0),
+  offset_rotation: 0
+});
+```
+

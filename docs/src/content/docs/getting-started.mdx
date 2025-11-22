@@ -1,0 +1,132 @@
+---
+title: Getting Started
+description: Installation and quick start guide
+---
+
+## Installation
+
+Install the library using npm:
+
+```bash
+npm install hw-ts-parametric-sequencer
+```
+
+## Importing
+
+The library provides separate entry points for 2D and 3D functionality:
+
+### 3D Animations
+
+```typescript
+import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+```
+
+### 2D Animations
+
+```typescript
+import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+```
+
+**Important**: There is no default/root export. You must explicitly import from `/2d` or `/3d`.
+
+## Basic Usage
+
+### 3D Example
+
+```typescript
+import { Sequencer3D, NodeMain, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+
+// Create a scene model
+const model1 = new SceneModel(
+  { name: 'MyModel' },
+  'model1',
+  {} // markers
+);
+
+// Define animation scene
+const scene = [
+  new NodeMain({
+    name: 'model1-position',
+    chapter: 'intro',
+    sceneModel: model1,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector3(1, 0, 0) },
+    rotation: { type: 'relative', value: new Euler(0, 90, 0) },
+    opacity: 1.0
+  })
+];
+
+// Create sequencer
+const sequencer = new Sequencer3D({
+  onUpdate: (state) => {
+    // Update your 3D scene with state.models and state.camera
+    state.models.forEach((modelState, modelID) => {
+      updateModelPosition(modelID, modelState.position);
+      updateModelRotation(modelID, modelState.rotation);
+      updateModelOpacity(modelID, modelState.opacity);
+    });
+    updateCamera(state.camera);
+  },
+  onComplete: () => {
+    console.log('Animation complete!');
+  }
+});
+
+// Load and play
+sequencer.loadScene(scene);
+sequencer.play();
+```
+
+### 2D Example
+
+```typescript
+import { Sequencer2D, NodeMain2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+
+// Create a scene model
+const model1 = new SceneModel2D(
+  { name: 'MyModel' },
+  'model1',
+  {} // markers
+);
+
+// Define animation scene
+const scene = [
+  new NodeMain2D({
+    name: 'model1-move',
+    chapter: 'intro',
+    sceneModel: model1,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector2(100, 50) },
+    rotation: { type: 'relative', value: 90 },
+    opacity: 1.0,
+    scale: 1.5
+  })
+];
+
+// Create sequencer
+const sequencer = new Sequencer2D({
+  onUpdate: (state) => {
+    // Update your 2D scene
+    state.models.forEach((modelState, modelID) => {
+      updateModelPosition(modelID, modelState.position);
+      updateModelAngle(modelID, modelState.rotation);
+      updateModelOpacity(modelID, modelState.opacity);
+      updateModelScale(modelID, modelState.scale);
+    });
+    updateCamera(state.camera);
+  }
+});
+
+sequencer.loadScene(scene);
+sequencer.play();
+```
+
+## Next Steps
+
+- Learn about [2D animations](/guides/2d-guide/)
+- Learn about [3D animations](/guides/3d-guide/)
+- Check out [examples](/guides/examples/)
+- Browse the [API Reference](/api/)
+

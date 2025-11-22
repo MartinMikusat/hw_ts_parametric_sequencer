@@ -1,0 +1,227 @@
+---
+title: Examples
+description: Code examples and integration patterns
+---
+
+## Three.js Integration
+
+```typescript
+import { Sequencer3D, NodeMain, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import * as THREE from 'three';
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+
+// Create a mesh
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+
+// Create scene model
+const model = new SceneModel({ name: 'Box' }, 'box1', {});
+
+// Define animation
+const animationScene = [
+  new NodeMain({
+    name: 'rotate-box',
+    chapter: 'intro',
+    sceneModel: model,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    rotation: { type: 'relative', value: new Euler(0, Math.PI, 0) }
+  })
+];
+
+// Create sequencer
+const sequencer = new Sequencer3D({
+  onUpdate: (state) => {
+    const modelState = state.models.get('box1');
+    if (modelState) {
+      // Update mesh position
+      mesh.position.set(
+        modelState.position.x,
+        modelState.position.y,
+        modelState.position.z
+      );
+      
+      // Update mesh rotation (convert quaternion to Three.js)
+      mesh.quaternion.set(
+        modelState.rotation.x,
+        modelState.rotation.y,
+        modelState.rotation.z,
+        modelState.rotation.w
+      );
+      
+      // Update material opacity
+      material.opacity = modelState.opacity;
+      material.transparent = modelState.opacity < 1;
+    }
+    
+    // Update camera
+    camera.position.set(
+      state.camera.target.x,
+      state.camera.target.y + 5,
+      state.camera.target.z + 10
+    );
+    camera.lookAt(state.camera.target.x, state.camera.target.y, state.camera.target.z);
+  }
+});
+
+sequencer.loadScene(animationScene);
+sequencer.play();
+
+// Render loop
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+```
+
+## Canvas 2D Integration
+
+```typescript
+import { Sequencer2D, NodeMain2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const model = new SceneModel2D({ name: 'Sprite' }, 'sprite1', {});
+
+const scene = [
+  new NodeMain2D({
+    name: 'move-sprite',
+    chapter: 'intro',
+    sceneModel: model,
+    time: { type: 'absolute', value: 0 },
+    duration: 2,
+    position: { type: 'absolute', value: new Vector2(100, 50) },
+    rotation: { type: 'relative', value: 90 },
+    opacity: 1.0,
+    scale: 1.5
+  })
+];
+
+const sequencer = new Sequencer2D({
+  onUpdate: (state) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    state.models.forEach((modelState, modelID) => {
+      ctx.save();
+      
+      // Apply transformations
+      ctx.translate(modelState.position.x, modelState.position.y);
+      ctx.rotate(modelState.rotation * Math.PI / 180);
+      ctx.scale(modelState.scale, modelState.scale);
+      ctx.globalAlpha = modelState.opacity;
+      
+      // Draw your sprite
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(-10, -10, 20, 20);
+      
+      ctx.restore();
+    });
+  }
+});
+
+sequencer.loadScene(scene);
+sequencer.play();
+```
+
+## React Integration
+
+```typescript
+import { useEffect, useRef } from 'react';
+import { Sequencer3D, NodeMain, Vector3, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+
+function AnimatedScene() {
+  const sequencerRef = useRef<Sequencer3D | null>(null);
+  
+  useEffect(() => {
+    const model = new SceneModel({ name: 'Model' }, 'model1', {});
+    
+    const scene = [
+      new NodeMain({
+        name: 'animate',
+        chapter: 'intro',
+        sceneModel: model,
+        time: { type: 'absolute', value: 0 },
+        duration: 2,
+        position: { type: 'absolute', value: new Vector3(1, 0, 0) }
+      })
+    ];
+    
+    const sequencer = new Sequencer3D({
+      onUpdate: (state) => {
+        // Update React state or trigger re-render
+        // You can use useState here to store the animation state
+      }
+    });
+    
+    sequencer.loadScene(scene);
+    sequencer.play();
+    
+    sequencerRef.current = sequencer;
+    
+    return () => {
+      sequencer.stop();
+    };
+  }, []);
+  
+  return <div>Your scene here</div>;
+}
+```
+
+## Complex Timing Dependencies
+
+```typescript
+// Animation 1: Move model
+const moveNode = new NodeMain({
+  name: 'move-model',
+  chapter: 'intro',
+  sceneModel: model,
+  time: { type: 'absolute', value: 0 },
+  duration: 2,
+  position: { type: 'absolute', value: new Vector3(1, 0, 0) }
+});
+
+// Animation 2: Start camera 0.5s after move starts
+const cameraNode = new NodeCamera({
+  name: 'camera-follow',
+  chapter: 'intro',
+  time: {
+    type: 'relative',
+    value: {
+      offset: 0.5,
+      side: 'Start',
+      parentID: 'move-model'
+    }
+  },
+  duration: 1.5,
+  rotationX: 45,
+  rotationY: -30,
+  target: new Vector3(0, 0, 0),
+  zoom: 1.2
+});
+
+// Animation 3: Start fade-out 0.3s before move ends
+const fadeNode = new NodeBasicHide({
+  name: 'fade-out',
+  chapter: 'outro',
+  sceneModel: model,
+  time: {
+    type: 'relative',
+    value: {
+      offset: -0.3,
+      side: 'End',
+      parentID: 'move-model'
+    }
+  },
+  duration: 1
+});
+
+const scene = [moveNode, cameraNode, fadeNode];
+```
+

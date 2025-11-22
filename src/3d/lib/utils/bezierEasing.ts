@@ -168,9 +168,41 @@ export function bezier(mX1: number, mY1: number, mX2: number, mY2: number): (x: 
 
 // --- Common Easing Functions ---
 
+/**
+ * Standard ease easing function.
+ * 
+ * Provides a smooth acceleration and deceleration curve.
+ * Equivalent to CSS `ease` timing function.
+ */
 export const ease = bezier(0.25, 0.1, 0.25, 1.0);
+
+/**
+ * Ease-in easing function.
+ * 
+ * Starts slow and accelerates. Equivalent to CSS `ease-in` timing function.
+ */
 export const easeIn = bezier(0.42, 0.0, 1.0, 1.0);
+
+/**
+ * Ease-out easing function.
+ * 
+ * Starts fast and decelerates. Equivalent to CSS `ease-out` timing function.
+ */
 export const easeOut = bezier(0.0, 0.0, 0.58, 1.0);
+
+/**
+ * Ease-in-out easing function.
+ * 
+ * Starts slow, accelerates in the middle, then decelerates.
+ * Equivalent to CSS `ease-in-out` timing function.
+ */
 export const easeInOut = bezier(0.42, 0.0, 0.58, 1.0);
-export const linear = linearEasing; // Export linear easing as well
+
+/**
+ * Linear easing function.
+ * 
+ * Constant speed with no acceleration or deceleration.
+ * Equivalent to CSS `linear` timing function.
+ */
+export const linear = linearEasing;
 

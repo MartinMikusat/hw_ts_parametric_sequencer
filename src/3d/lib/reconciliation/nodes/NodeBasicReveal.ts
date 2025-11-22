@@ -2,16 +2,73 @@ import { Euler, Vector3 } from '../../math';
 import type { SceneModel } from '../../types/types_sceneModel';
 import type { type_keyframe_model, type_time } from '../keyframes/types';
 
+/**
+ * Properties required to create a NodeBasicReveal instance.
+ * 
+ * NodeBasicReveal creates a fade-in and position animation for revealing a model.
+ */
 export interface NodeBasicRevealProps {
+	/** 
+	 * Unique identifier for this node. Used as the keyframe ID and for relative timing references.
+	 */
 	name: string;
-	chapter: string; 
+	
+	/** 
+	 * Chapter identifier for organizing animations into logical groups.
+	 */
+	chapter: string;
+	
+	/** 
+	 * The SceneModel instance to reveal.
+	 */
 	sceneModel: SceneModel;
+	
+	/** 
+	 * Duration of the reveal animation in seconds.
+	 */
 	duration: number;
+	
+	/** 
+	 * Timing specification for when this reveal animation starts.
+	 */
 	time: type_time;
+	
+	/** 
+	 * The starting position of the model before it's revealed.
+	 */
 	startingPosition: Vector3;
+	
+	/** 
+	 * The starting rotation of the model before it's revealed.
+	 */
 	startingRotation: Euler;
 }
 
+/**
+ * Represents a basic reveal animation node for 3D models.
+ * 
+ * NodeBasicReveal creates a fade-in effect combined with a position animation.
+ * The model starts invisible at the starting position/rotation, then fades in
+ * and animates to its current state over the specified duration.
+ * 
+ * @remarks
+ * This node generates two keyframes:
+ * 1. An initial keyframe with opacity 0 at the starting position
+ * 2. A reveal keyframe with opacity 1 that inherits the current position/rotation
+ * 
+ * @example
+ * ```typescript
+ * const revealNode = new NodeBasicReveal({
+ *   name: 'reveal-model1',
+ *   chapter: 'intro',
+ *   sceneModel: myModel,
+ *   time: { type: 'absolute', value: 0 },
+ *   duration: 1.5,
+ *   startingPosition: new Vector3(-10, 0, 0),
+ *   startingRotation: new Euler(0, 0, 0)
+ * });
+ * ```
+ */
 export class NodeBasicReveal {
 	name: string;
 	chapter: string;
@@ -32,16 +89,20 @@ export class NodeBasicReveal {
 	}
 
 	/**
-	 * Used for other keyframes to use as a reference when using relative time.
-	 * @returns One of the IDs of the keyframes of this node.
+	 * Gets the relative ID used for timing references.
+	 * 
+	 * @returns The reveal keyframe ID, which can be referenced by other nodes for relative timing.
 	 */
 	getRelativeID(): string {
 		return `${this.name}-reveal`;
 	}
 
 	/**
-	 * Reconciles the node's properties into an array of keyframes representing its initial state and reveal animation.
-	 * @returns An array of keyframe models.
+	 * Reconciles this node into keyframes for the animation system.
+	 * 
+	 * @returns An array containing two keyframes: initial state and reveal animation.
+	 * 
+	 * @internal
 	 */
 	reconcile(): Array<type_keyframe_model> {
 		const initialKeyframeID = `${this.name}-initial`;

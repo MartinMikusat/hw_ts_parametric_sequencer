@@ -1,5 +1,14 @@
 /**
- * Normalizes an angle in degrees to the range [0, 360)
+ * Normalizes an angle in degrees to the range [0, 360).
+ * 
+ * @param angle - The angle in degrees to normalize.
+ * @returns The normalized angle in the range [0, 360).
+ * 
+ * @example
+ * ```typescript
+ * normalizeAngleDegrees(450); // Returns 90
+ * normalizeAngleDegrees(-90); // Returns 270
+ * ```
  */
 export function normalizeAngleDegrees(angle: number): number {
 	let normalized = angle % 360;
@@ -10,7 +19,10 @@ export function normalizeAngleDegrees(angle: number): number {
 }
 
 /**
- * Normalizes an angle in radians to the range [0, 2π)
+ * Normalizes an angle in radians to the range [0, 2π).
+ * 
+ * @param angle - The angle in radians to normalize.
+ * @returns The normalized angle in the range [0, 2π).
  */
 export function normalizeAngleRadians(angle: number): number {
 	const TWO_PI = 2 * Math.PI;
@@ -22,14 +34,30 @@ export function normalizeAngleRadians(angle: number): number {
 }
 
 /**
- * Converts degrees to radians
+ * Converts degrees to radians.
+ * 
+ * @param degrees - Angle in degrees.
+ * @returns Angle in radians.
+ * 
+ * @example
+ * ```typescript
+ * deg2rad(90); // Returns Math.PI / 2
+ * ```
  */
 export function deg2rad(degrees: number): number {
 	return degrees * (Math.PI / 180);
 }
 
 /**
- * Converts radians to degrees
+ * Converts radians to degrees.
+ * 
+ * @param radians - Angle in radians.
+ * @returns Angle in degrees.
+ * 
+ * @example
+ * ```typescript
+ * rad2deg(Math.PI / 2); // Returns 90
+ * ```
  */
 export function rad2deg(radians: number): number {
 	return radians * (180 / Math.PI);

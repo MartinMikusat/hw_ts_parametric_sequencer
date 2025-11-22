@@ -5,24 +5,124 @@ import type { type_separatedKeyframes_extended, type_keyframe_camera, type_keyfr
 // Constant for float comparisons
 const EPSILON = 1e-6;
 
-// Define the state structures using custom types
+/**
+ * Represents the animation state of a single 3D model at a specific point in time.
+ * 
+ * @remarks
+ * This state is calculated by interpolating between keyframes based on the current time.
+ * All values are interpolated smoothly using linear interpolation for positions/opacity
+ * and spherical linear interpolation (SLERP) for rotations.
+ */
 export interface ModelAnimationState3D {
+	/** 
+	 * The opacity of the model, ranging from 0 (fully transparent) to 1 (fully opaque).
+	 * Defaults to 1 if not specified in any keyframe.
+	 */
 	opacity: number;
+	
+	/** 
+	 * The 3D position of the model in world space.
+	 * This is the interpolated position based on position keyframes.
+	 */
 	position: Vector3;
+	
+	/** 
+	 * The rotation of the model as a quaternion.
+	 * This is interpolated using SLERP for smooth rotation transitions.
+	 */
 	rotation: Quaternion;
+	
+	/** 
+	 * The cumulative rotation of the model, including all relative rotations.
+	 * This is used internally for marker-based positioning calculations.
+	 * 
+	 * @internal
+	 */
 	cumulativeModelRotation: Quaternion;
 }
 
+/**
+ * Represents the animation state of the camera at a specific point in time.
+ * 
+ * @remarks
+ * The camera state controls the viewport transformation in 3D space.
+ * All values are interpolated linearly between keyframes.
+ */
 export interface CameraAnimationState3D {
+	/** 
+	 * The rotation angle around the X-axis in degrees.
+	 * Positive values rotate upward (pitch).
+	 * 
+	 * @defaultValue 0
+	 */
 	rotationX: number;
+	
+	/** 
+	 * The rotation angle around the Y-axis in degrees.
+	 * Positive values rotate to the right (yaw).
+	 * 
+	 * @defaultValue 0
+	 */
 	rotationY: number;
+	
+	/** 
+	 * The target point that the camera is looking at in 3D space.
+	 * This is the center point of the camera's view.
+	 * 
+	 * @defaultValue Vector3(0, 0, 0)
+	 */
 	target: Vector3;
+	
+	/** 
+	 * The zoom level of the camera.
+	 * Values greater than 1 zoom in, values less than 1 zoom out.
+	 * 
+	 * @defaultValue 1.0
+	 */
 	zoom: number;
 }
 
-// Final output structure
+/**
+ * Complete animation state snapshot at a specific point in time.
+ * 
+ * Contains the interpolated state of all models and the camera for a given time.
+ * This is the primary output of the animation system and is used to update
+ * the visual representation of the scene.
+ * 
+ * @example
+ * ```typescript
+ * const snapshot = sequencer.getAnimationState();
+ * if (snapshot) {
+ *   // Update all models
+ *   snapshot.models.forEach((modelState, modelID) => {
+ *     updateModel(modelID, {
+ *       position: modelState.position,
+ *       rotation: modelState.rotation,
+ *       opacity: modelState.opacity
+ *     });
+ *   });
+ *   
+ *   // Update camera
+ *   updateCamera({
+ *     rotationX: snapshot.camera.rotationX,
+ *     rotationY: snapshot.camera.rotationY,
+ *     target: snapshot.camera.target,
+ *     zoom: snapshot.camera.zoom
+ *   });
+ * }
+ * ```
+ */
 export interface AnimationSnapshot3D {
+	/** 
+	 * Map of all model states, keyed by sceneModelID.
+	 * Only models that have been referenced in the scene definition are included.
+	 */
 	models: Map<string, ModelAnimationState3D>;
+	
+	/** 
+	 * The current camera state.
+	 * Always present, defaults to initial values if no camera keyframes exist.
+	 */
 	camera: CameraAnimationState3D;
 }
 
