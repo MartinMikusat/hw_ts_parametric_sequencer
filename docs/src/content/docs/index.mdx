@@ -44,29 +44,38 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Quick Start
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
-const sequencer = new Sequencer3D({
-  onUpdate: (state) => {
-    // Update your 3D scene
-    state.models.forEach((modelState, modelID) => {
-      updateModel(modelID, modelState);
-    });
-    updateCamera(state.camera);
-  }
-});
+// Create scene object
+const object1 = new SceneObject('object1', {});
 
+// Define scene
 const scene = [
   new NodeMain({
     name: 'move-object',
     chapter: 'intro',
-    sceneObject: myObject,
+    sceneObject: object1,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector3(1, 0, 0) }
   })
 ];
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Reconcile once
+const reconciled = reconcileScene(scene);
+
+// Your animation loop
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  // Update your 3D scene
+  state.models.forEach((modelState, modelID) => {
+    updateModel(modelID, modelState);
+  });
+  updateCamera(state.camera);
+}
+animate();
 ```

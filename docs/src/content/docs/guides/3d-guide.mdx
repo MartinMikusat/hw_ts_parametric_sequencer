@@ -18,10 +18,12 @@ The 3D animation system provides full 3D scene control with position, rotation (
 ## Basic 3D Animation
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
+// Create a scene object
 const object = new SceneObject('mesh1', {});
 
+// Define animation scene
 const scene = [
   new NodeMain({
     name: 'move-mesh',
@@ -35,22 +37,30 @@ const scene = [
   })
 ];
 
-const sequencer = new Sequencer3D({
-  onUpdate: (state) => {
-    state.models.forEach((modelState, modelID) => {
-      // Update your 3D rendering (e.g., Three.js)
-      updateMesh(modelID, {
-        position: modelState.position,
-        rotation: modelState.rotation, // Quaternion
-        opacity: modelState.opacity
-      });
-    });
-    updateCamera(state.camera);
-  }
-});
+// Reconcile the scene (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene(scene);
+console.log(`Animation duration: ${reconciled.duration}s`);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Your own animation loop - get state at any time
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  // Update your 3D rendering (e.g., Three.js)
+  state.models.forEach((modelState, modelID) => {
+    updateMesh(modelID, {
+      position: modelState.position,
+      rotation: modelState.rotation, // Quaternion
+      opacity: modelState.opacity
+    });
+  });
+  updateCamera(state.camera);
+}
+
+animate();
 ```
 
 ## Camera Animation
