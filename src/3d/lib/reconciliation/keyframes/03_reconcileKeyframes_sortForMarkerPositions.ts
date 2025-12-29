@@ -89,21 +89,21 @@ const sortCameraKeyframesByTime = (keyframes: Array<type_keyframes_reconciledTim
 };
 
 /**
- * Gets the SceneModel ID from a model keyframe
+ * Gets the SceneObject ID from a model keyframe
  */
-const getModelIDFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model): string => {
-	if (typeof keyframe.keyframe.sceneModel === 'object' && keyframe.keyframe.sceneModel !== null) {
-		// Access sceneModelID directly from the model
-		const model = keyframe.keyframe.sceneModel;
-		if (model.sceneModelID) {
-			return model.sceneModelID;
+const getObjectIDFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model): string => {
+	if (typeof keyframe.keyframe.sceneObject === 'object' && keyframe.keyframe.sceneObject !== null) {
+		// Access sceneObjectID directly from the object
+		const object = keyframe.keyframe.sceneObject;
+		if (object.sceneObjectID) {
+			return object.sceneObjectID;
 		}
 	}
 	console.error(
-		'Invalid sceneModel structure in keyframe - missing sceneModelID property',
-		keyframe.keyframe.sceneModel
+		'Invalid sceneObject structure in keyframe - missing sceneObjectID property',
+		keyframe.keyframe.sceneObject
 	);
-	return String(keyframe.keyframe.sceneModel);
+	return String(keyframe.keyframe.sceneObject);
 };
 
 /**
@@ -114,19 +114,19 @@ const modelKeyframeHasMarkerPosition = (keyframe: type_keyframes_reconciledTimeE
 };
 
 /**
- * Gets parent SceneModel IDs for a Marker position model keyframe
+ * Gets parent SceneObject IDs for a Marker position model keyframe
  */
-const getParentModelIDsFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model): string[] => {
+const getParentObjectIDsFromModelKeyframe = (keyframe: type_keyframes_reconciledTimeExtended_model): string[] => {
 	if (keyframe.keyframe.position?.type === 'marker') {
 		const markerValue = keyframe.keyframe.position.value;
 
 		// Handle marker with parent reference
 		if (markerValue && typeof markerValue === 'object' && 'parent' in markerValue && markerValue.parent) {
 			const parent = markerValue.parent;
-			if (parent && typeof parent === 'object' && parent.sceneModelID) {
-				return [parent.sceneModelID];
+			if (parent && typeof parent === 'object' && parent.sceneObjectID) {
+				return [parent.sceneObjectID];
 			}
-			console.error('Marker parent reference missing sceneModelID property', parent);
+			console.error('Marker parent reference missing sceneObjectID property', parent);
 			return [];
 		}
 
@@ -157,64 +157,64 @@ export const sortKeyframesForMarkerPositions = (separatedKeyframes: type_separat
 		};
 	}
 
-	// Group keyframes by SceneModel ID
-	const modelKeyframesByModelID = new Map<string, type_keyframes_reconciledTimeExtended_model[]>();
-	const initialModelIDs = new Set<string>();
+	// Group keyframes by SceneObject ID
+	const modelKeyframesByObjectID = new Map<string, type_keyframes_reconciledTimeExtended_model[]>();
+	const initialObjectIDs = new Set<string>();
 
 	modelKeyframes.forEach((kf) => {
-		const modelID = getModelIDFromModelKeyframe(kf);
-		if (!modelKeyframesByModelID.has(modelID)) {
-			modelKeyframesByModelID.set(modelID, []);
+		const objectID = getObjectIDFromModelKeyframe(kf);
+		if (!modelKeyframesByObjectID.has(objectID)) {
+			modelKeyframesByObjectID.set(objectID, []);
 		}
-		modelKeyframesByModelID.get(modelID)!.push(kf);
-		initialModelIDs.add(modelID);
+		modelKeyframesByObjectID.get(objectID)!.push(kf);
+		initialObjectIDs.add(objectID);
 	});
 
-	const sortedModelIDs: string[] = [];
-	const remainingModelIDs = new Set(initialModelIDs);
+	const sortedObjectIDs: string[] = [];
+	const remainingObjectIDs = new Set(initialObjectIDs);
 
 	// Track dependency relationships for error reporting
 	const dependsOn = new Map<string, Set<string>>();
 	// Build dependency graph
-	remainingModelIDs.forEach((modelID) => {
-		const modelKeyframes = modelKeyframesByModelID.get(modelID) || [];
+	remainingObjectIDs.forEach((objectID) => {
+		const modelKeyframes = modelKeyframesByObjectID.get(objectID) || [];
 		const markerDependencyKeyframes = modelKeyframes.filter(modelKeyframeHasMarkerPosition);
 
 		if (markerDependencyKeyframes.length > 0) {
-			if (!dependsOn.has(modelID)) {
-				dependsOn.set(modelID, new Set());
+			if (!dependsOn.has(objectID)) {
+				dependsOn.set(objectID, new Set());
 			}
 
 			markerDependencyKeyframes.forEach((kf) => {
-				getParentModelIDsFromModelKeyframe(kf).forEach((parentID) => {
-					dependsOn.get(modelID)?.add(parentID);
+				getParentObjectIDsFromModelKeyframe(kf).forEach((parentID) => {
+					dependsOn.get(objectID)?.add(parentID);
 				});
 			});
 		}
 	});
 
-	// Iteratively sort models based on dependencies (Topological Sort)
+	// Iteratively sort objects based on dependencies (Topological Sort)
 	let iterations = 0;
-	const maxIterations = initialModelIDs.size + 10; // Safety break slightly larger than needed
+	const maxIterations = initialObjectIDs.size + 10; // Safety break slightly larger than needed
 
-	while (remainingModelIDs.size > 0 && iterations < maxIterations) {
+	while (remainingObjectIDs.size > 0 && iterations < maxIterations) {
 		iterations++;
 		const newlySortedThisPass: string[] = [];
 
-		remainingModelIDs.forEach((modelID) => {
-			const modelKeyframes = modelKeyframesByModelID.get(modelID) || [];
+		remainingObjectIDs.forEach((objectID) => {
+			const modelKeyframes = modelKeyframesByObjectID.get(objectID) || [];
 			const markerDependencyKeyframes = modelKeyframes.filter(modelKeyframeHasMarkerPosition);
 
 			let canSort = true;
 			if (markerDependencyKeyframes.length > 0) {
 				const parentIDs = new Set<string>();
 				markerDependencyKeyframes.forEach((kf) => {
-					getParentModelIDsFromModelKeyframe(kf).forEach((id) => parentIDs.add(id));
+					getParentObjectIDsFromModelKeyframe(kf).forEach((id) => parentIDs.add(id));
 				});
 
 				// Check if all parents are already sorted (either in previous or current pass)
 				for (const parentID of parentIDs) {
-					if (!sortedModelIDs.includes(parentID) && !newlySortedThisPass.includes(parentID)) {
+					if (!sortedObjectIDs.includes(parentID) && !newlySortedThisPass.includes(parentID)) {
 						// Dependency not met yet
 						canSort = false;
 						break;
@@ -223,7 +223,7 @@ export const sortKeyframesForMarkerPositions = (separatedKeyframes: type_separat
 			}
 
 			if (canSort) {
-				newlySortedThisPass.push(modelID);
+				newlySortedThisPass.push(objectID);
 			}
 		});
 
@@ -242,33 +242,33 @@ export const sortKeyframesForMarkerPositions = (separatedKeyframes: type_separat
 			} else {
 				// Build detailed error message showing unresolved dependencies
 				const unresolvedDetails: string[] = [];
-				remainingModelIDs.forEach(modelID => {
-					const deps = dependsOn.get(modelID);
+				remainingObjectIDs.forEach(objectID => {
+					const deps = dependsOn.get(objectID);
 					if (deps && deps.size > 0) {
-						unresolvedDetails.push(`${modelID} (depends on: ${Array.from(deps).join(', ')})`);
+						unresolvedDetails.push(`${objectID} (depends on: ${Array.from(deps).join(', ')})`);
 					} else {
-						unresolvedDetails.push(modelID);
+						unresolvedDetails.push(objectID);
 					}
 				});
 
-				const dependencyAnalysis = remainingModelIDs.size <= 5 ?
+				const dependencyAnalysis = remainingObjectIDs.size <= 5 ?
 					unresolvedDetails.map(detail => `  - ${detail}`).join('\n') :
-					`  - ${Array.from(remainingModelIDs).slice(0, 5).join(', ')} (and ${remainingModelIDs.size - 5} more)`;
+					`  - ${Array.from(remainingObjectIDs).slice(0, 5).join(', ')} (and ${remainingObjectIDs.size - 5} more)`;
 
 				throw new Error(
 					`Failed to sort model keyframes due to unresolved dependencies - animation will not work correctly.\n\n` +
-					`UNSORTED MODELS:\n${dependencyAnalysis}`
+					`UNSORTED OBJECTS:\n${dependencyAnalysis}`
 				);
 			}
 		} else {
-			newlySortedThisPass.forEach((modelID) => {
-				sortedModelIDs.push(modelID);
-				remainingModelIDs.delete(modelID);
+			newlySortedThisPass.forEach((objectID) => {
+				sortedObjectIDs.push(objectID);
+				remainingObjectIDs.delete(objectID);
 			});
 		}
 	}
 
-	if (iterations >= maxIterations && remainingModelIDs.size > 0) {
+	if (iterations >= maxIterations && remainingObjectIDs.size > 0) {
 		throw new Error(
 			`Exceeded maximum iterations (${maxIterations}) while sorting model keyframes - algorithm safety limit reached.`
 		);
@@ -277,12 +277,12 @@ export const sortKeyframesForMarkerPositions = (separatedKeyframes: type_separat
 	// Construct the final sorted array
 	const finalSortedModelKeyframes: type_keyframes_reconciledTimeExtended_model[] = [];
 
-	// Add sorted model keyframes (sorting by time within each model)
-	sortedModelIDs.forEach((modelID) => {
-		const keyframesForModel = modelKeyframesByModelID.get(modelID) || [];
-		// Sort keyframes for this model by time
-		const sortedKeyframesForModel = [...keyframesForModel].sort((a, b) => a.extended.startTime - b.extended.startTime);
-		finalSortedModelKeyframes.push(...sortedKeyframesForModel);
+	// Add sorted model keyframes (sorting by time within each object)
+	sortedObjectIDs.forEach((objectID) => {
+		const keyframesForObject = modelKeyframesByObjectID.get(objectID) || [];
+		// Sort keyframes for this object by time
+		const sortedKeyframesForObject = [...keyframesForObject].sort((a, b) => a.extended.startTime - b.extended.startTime);
+		finalSortedModelKeyframes.push(...sortedKeyframesForObject);
 	});
 
 	return {

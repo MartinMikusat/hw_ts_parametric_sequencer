@@ -1,11 +1,11 @@
 import { Euler, Vector3 } from '../../math';
-import type { SceneModel } from '../../types/types_sceneModel';
+import type { SceneObject } from '../../types/types_sceneModel';
 import type { type_keyframe_model, type_time } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeBasicReveal instance.
  * 
- * NodeBasicReveal creates a fade-in and position animation for revealing a model.
+ * NodeBasicReveal creates a fade-in and position animation for revealing an object.
  */
 export interface NodeBasicRevealProps {
 	/** 
@@ -19,9 +19,9 @@ export interface NodeBasicRevealProps {
 	chapter: string;
 	
 	/** 
-	 * The SceneModel instance to reveal.
+	 * The SceneObject instance to reveal.
 	 */
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	
 	/** 
 	 * Duration of the reveal animation in seconds.
@@ -34,21 +34,21 @@ export interface NodeBasicRevealProps {
 	time: type_time;
 	
 	/** 
-	 * The starting position of the model before it's revealed.
+	 * The starting position of the object before it's revealed.
 	 */
 	startingPosition: Vector3;
 	
 	/** 
-	 * The starting rotation of the model before it's revealed.
+	 * The starting rotation of the object before it's revealed.
 	 */
 	startingRotation: Euler;
 }
 
 /**
- * Represents a basic reveal animation node for 3D models.
+ * Represents a basic reveal animation node for 3D objects.
  * 
  * NodeBasicReveal creates a fade-in effect combined with a position animation.
- * The model starts invisible at the starting position/rotation, then fades in
+ * The object starts invisible at the starting position/rotation, then fades in
  * and animates to its current state over the specified duration.
  * 
  * @remarks
@@ -59,9 +59,9 @@ export interface NodeBasicRevealProps {
  * @example
  * ```typescript
  * const revealNode = new NodeBasicReveal({
- *   name: 'reveal-model1',
+ *   name: 'reveal-object1',
  *   chapter: 'intro',
- *   sceneModel: myModel,
+ *   sceneObject: myObject,
  *   time: { type: 'absolute', value: 0 },
  *   duration: 1.5,
  *   startingPosition: new Vector3(-10, 0, 0),
@@ -72,7 +72,7 @@ export interface NodeBasicRevealProps {
 export class NodeBasicReveal {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	duration: number;
 	time: type_time;
 	startingPosition: Vector3;
@@ -81,7 +81,7 @@ export class NodeBasicReveal {
 	constructor(props: NodeBasicRevealProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
 		this.startingPosition = props.startingPosition;
@@ -111,7 +111,7 @@ export class NodeBasicReveal {
 		return [
 			{
 				id: initialKeyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				opacity: 0.0,
 				duration: 1 / 240, // Keep specific duration for initial state
@@ -127,7 +127,7 @@ export class NodeBasicReveal {
 			},
 			{
 				id: revealKeyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time, // Reveal starts at the same time
 				opacity: 1.0,
 				duration: this.duration, // Use the node's duration for the reveal

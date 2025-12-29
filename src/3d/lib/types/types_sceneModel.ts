@@ -1,51 +1,40 @@
 import type { Vector3, Euler } from '../math';
 
 /**
- * Interface for model definition
- */
-export type type_modelDefinition = {
-	name: string;
-	modelPath?: string;
-};
-
-/**
  * Interface for marker definition.
  * All rotations in the public API are expressed in DEGREES.
  */
-export type type_sceneModel_marker = {
+export type type_sceneObject_marker = {
 	position: Vector3;
 	rotation: Euler;
 };
 
-export type type_sceneModel_marker_withParent = type_sceneModel_marker & {
-	parent: SceneModel;
+export type type_sceneObject_marker_withParent = type_sceneObject_marker & {
+	parent: SceneObject;
 };
 
 /**
- * A class that encapsulates both scene model and marker functionality
+ * A class that encapsulates scene object and marker functionality.
+ * Represents an animatable object in the scene with an identifier and optional markers.
  */
-export class SceneModel {
-	/** The scene model data */
-	model: any;
-	/** Unique identifier for this model */
-	sceneModelID: string;
-	/** Collection of markers associated with this model */
-	markers: Record<string, type_sceneModel_marker>;
+export class SceneObject {
+	/** Unique identifier for this object */
+	sceneObjectID: string;
+	/** Collection of markers associated with this object */
+	markers: Record<string, type_sceneObject_marker>;
 
 	/**
-	 * Create a new SceneModelWithMarkers
-	 * @param model The 3D model data
-	 * @param sceneModelID Unique identifier for this model
+	 * Create a new SceneObject
+	 * @param sceneObjectID Unique identifier for this object
 	 * @param markers Record of marker IDs to their definitions
 	 */
-	constructor(model: type_modelDefinition, sceneModelID: string, markers: Record<string, type_sceneModel_marker> = {}) {
-		this.model = model;
-		this.sceneModelID = sceneModelID;
+	constructor(sceneObjectID: string, markers: Record<string, type_sceneObject_marker> = {}) {
+		this.sceneObjectID = sceneObjectID;
 		this.markers = markers
 	}
 
 	/**
-	 * Get all marker IDs available for this model
+	 * Get all marker IDs available for this object
 	 * @returns Array of marker IDs
 	 */
 	getMarkerIDs(): string[] {
@@ -58,10 +47,10 @@ export class SceneModel {
 	 * @returns The marker
 	 * @throws Error if marker is not found
 	 */
-	getMarker<T extends keyof typeof this.markers>(markerID: T): type_sceneModel_marker_withParent {
+	getMarker<T extends keyof typeof this.markers>(markerID: T): type_sceneObject_marker_withParent {
 		const marker = this.markers[markerID as string];
 		if (!marker) {
-			throw new Error(`Marker ${markerID as string} not found for model ${this.sceneModelID}`);
+			throw new Error(`Marker ${markerID as string} not found for object ${this.sceneObjectID}`);
 		}
 		return {
 			...marker,

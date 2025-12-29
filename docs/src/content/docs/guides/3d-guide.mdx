@@ -18,15 +18,15 @@ The 3D animation system provides full 3D scene control with position, rotation (
 ## Basic 3D Animation
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import { Sequencer3D, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
-const model = new SceneModel({ name: 'Mesh' }, 'mesh1', {});
+const object = new SceneObject('mesh1', {});
 
 const scene = [
   new NodeMain({
     name: 'move-mesh',
     chapter: 'intro',
-    sceneModel: model,
+    sceneObject: object,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector3(1, 0, 0) },
@@ -98,9 +98,8 @@ const cameraNode = new NodeCamera({
 ```typescript
 import { NodeToMarkerPosition } from 'hw-ts-parametric-sequencer/3d';
 
-// Create a parent model with a marker
-const parentModel = new SceneModel(
-  { name: 'Parent' },
+// Create a parent object with a marker
+const parentObject = new SceneObject(
   'parent',
   {
     'attachment-point': {
@@ -110,12 +109,12 @@ const parentModel = new SceneModel(
   }
 );
 
-// Position a child model relative to the marker
-const marker = parentModel.getMarker('attachment-point');
+// Position a child object relative to the marker
+const marker = parentObject.getMarker('attachment-point');
 const attachNode = new NodeToMarkerPosition({
   name: 'attach-part',
   chapter: 'assembly',
-  sceneModel: childModel,
+  sceneObject: childObject,
   time: { type: 'absolute', value: 2 },
   marker: marker,
   offset_position: new Vector3(0, 0, 0),
@@ -136,22 +135,22 @@ const attachNode = new NodeToMarkerPosition({
 ```typescript
 import { NodeBasicReveal, NodeBasicHide, Vector3, Euler } from 'hw-ts-parametric-sequencer/3d';
 
-// Reveal a model with fade-in and position animation
+// Reveal an object with fade-in and position animation
 const reveal = new NodeBasicReveal({
-  name: 'reveal-model',
+  name: 'reveal-object',
   chapter: 'intro',
-  sceneModel: model,
+  sceneObject: object,
   time: { type: 'absolute', value: 0 },
   duration: 1,
   startingPosition: new Vector3(-10, 0, 0),
   startingRotation: new Euler(0, 0, 0)
 });
 
-// Hide a model with fade-out
+// Hide an object with fade-out
 const hide = new NodeBasicHide({
-  name: 'hide-model',
+  name: 'hide-object',
   chapter: 'outro',
-  sceneModel: model,
+  sceneObject: object,
   time: { type: 'absolute', value: 5 },
   duration: 1,
   offsetPosition: new Vector3(0, -5, 0),

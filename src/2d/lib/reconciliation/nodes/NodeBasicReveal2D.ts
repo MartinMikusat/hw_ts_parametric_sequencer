@@ -1,11 +1,11 @@
 import { Vector2 } from '../../math/Vector2';
-import type { SceneModel2D } from '../../types/types_sceneModel';
+import type { SceneObject2D } from '../../types/types_sceneModel';
 import type { type_keyframe_model2D, type_time } from '../keyframes/types';
 
 export interface NodeBasicReveal2DProps {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
 	startingPosition: Vector2;
@@ -16,7 +16,7 @@ export interface NodeBasicReveal2DProps {
 export class NodeBasicReveal2D {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
 	startingPosition: Vector2;
@@ -26,7 +26,7 @@ export class NodeBasicReveal2D {
 	constructor(props: NodeBasicReveal2DProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
 		this.startingPosition = props.startingPosition;
@@ -53,7 +53,7 @@ export class NodeBasicReveal2D {
 		return [
 			{
 				id: initialKeyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				opacity: 0.0,
 				duration: 1 / 240, // Keep specific duration for initial state
@@ -70,7 +70,7 @@ export class NodeBasicReveal2D {
 			},
 			{
 				id: revealKeyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time, // Reveal starts at the same time
 				opacity: 1.0,
 				duration: this.duration, // Use the node's duration for the reveal

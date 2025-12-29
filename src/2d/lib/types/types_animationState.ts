@@ -100,8 +100,8 @@ export interface CameraAnimationState2D {
  */
 export interface AnimationSnapshot2D {
 	/** 
-	 * Map of all model states, keyed by sceneModelID.
-	 * Only models that have been referenced in the scene definition are included.
+	 * Map of all model states, keyed by sceneObjectID.
+	 * Only objects that have been referenced in the scene definition are included.
 	 */
 	models: Map<string, ModelAnimationState2D>;
 	

@@ -1,11 +1,11 @@
 import { Euler, Vector3 } from '../../math';
-import type { SceneModel } from '../../types/types_sceneModel';
+import type { SceneObject } from '../../types/types_sceneModel';
 import type { type_keyframe_model, type_time } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeBasicUnhide instance.
  * 
- * NodeBasicUnhide makes a hidden model visible again with optional position/rotation offset.
+ * NodeBasicUnhide makes a hidden object visible again with optional position/rotation offset.
  */
 export interface NodeBasicUnhideProps {
 	/** 
@@ -19,9 +19,9 @@ export interface NodeBasicUnhideProps {
 	chapter: string;
 	
 	/** 
-	 * The SceneModel instance to unhide.
+	 * The SceneObject instance to unhide.
 	 */
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	
 	/** 
 	 * Duration of the unhide animation in seconds.
@@ -45,9 +45,9 @@ export interface NodeBasicUnhideProps {
 }
 
 /**
- * Represents a basic unhide animation node for 3D models.
+ * Represents a basic unhide animation node for 3D objects.
  * 
- * NodeBasicUnhide makes a previously hidden model visible again by setting opacity to 1.
+ * NodeBasicUnhide makes a previously hidden object visible again by setting opacity to 1.
  * It can optionally apply position and rotation offsets relative to the current state.
  * 
  * @remarks
@@ -57,9 +57,9 @@ export interface NodeBasicUnhideProps {
  * @example
  * ```typescript
  * const unhideNode = new NodeBasicUnhide({
- *   name: 'unhide-model1',
+ *   name: 'unhide-object1',
  *   chapter: 'intro',
- *   sceneModel: myModel,
+ *   sceneObject: myObject,
  *   time: { type: 'absolute', value: 5 },
  *   duration: 0.5,
  *   offsetPosition: new Vector3(0, 2, 0), // Move up when unhiding
@@ -70,7 +70,7 @@ export interface NodeBasicUnhideProps {
 export class NodeBasicUnhide {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	duration: number;
 	time: type_time;
 	offsetPosition: Vector3;
@@ -79,7 +79,7 @@ export class NodeBasicUnhide {
 	constructor(props: NodeBasicUnhideProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
 		this.offsetPosition = props.offsetPosition;
@@ -111,7 +111,7 @@ export class NodeBasicUnhide {
 		return [
 			{
 				id: unhideKeyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				opacity: 1.0,
 				duration: this.duration,

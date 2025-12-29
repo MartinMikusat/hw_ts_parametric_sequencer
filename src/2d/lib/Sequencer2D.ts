@@ -130,7 +130,7 @@ export class Sequencer2D {
 	private _previousFrameTime: number | undefined;
 	
 	private _keyframes: type_separatedKeyframes_extended2D | null = null;
-    private _currentSceneModels: Set<any> | null = null;
+    private _currentSceneObjects: Set<any> | null = null;
     
     private _options: SequencerOptions2D;
 
@@ -196,7 +196,7 @@ export class Sequencer2D {
 		this.stop();
 		const reconciled = reconcileKeyframes2D(scene);
 		this._keyframes = reconciled;
-        this._currentSceneModels = reconciled.sceneModels;
+        this._currentSceneObjects = reconciled.sceneObjects;
 		this._duration = keyframes_getSceneDuration2D(reconciled);
 		this._time = 0;
         
@@ -266,29 +266,29 @@ export class Sequencer2D {
 	}
     
     /**
-     * Gets the set of SceneModel2D instances in the current scene.
+     * Gets the set of SceneObject2D instances in the current scene.
      * 
-     * @returns A Set containing all SceneModel2D instances referenced in the loaded scene,
+     * @returns A Set containing all SceneObject2D instances referenced in the loaded scene,
      *          or `null` if no scene is loaded.
      * 
      * @remarks
-     * This set is populated when loadScene() is called. It contains all models
+     * This set is populated when loadScene() is called. It contains all objects
      * that are referenced by nodes in the scene definition. You can use this to
-     * iterate over all models or check if a specific model is in the scene.
+     * iterate over all objects or check if a specific object is in the scene.
      * 
      * @example
      * ```typescript
      * sequencer.loadScene(scene);
-     * const models = sequencer.sceneModels;
-     * if (models) {
-     *   models.forEach(model => {
-     *     console.log(`Model: ${model.sceneModelID}`);
+     * const objects = sequencer.sceneObjects;
+     * if (objects) {
+     *   objects.forEach(object => {
+     *     console.log(`Object: ${object.sceneObjectID}`);
      *   });
      * }
      * ```
      */
-    get sceneModels() {
-        return this._currentSceneModels;
+    get sceneObjects() {
+        return this._currentSceneObjects;
     }
 
 	/**

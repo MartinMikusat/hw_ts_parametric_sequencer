@@ -1,12 +1,12 @@
 import { Euler, Quaternion, Vector3 } from '../../math';
 import { rad2deg } from '../../utils/deg2rad';
-import type { SceneModel, type_sceneModel_marker_withParent } from '../../types/types_sceneModel';
+import type { SceneObject, type_sceneObject_marker_withParent } from '../../types/types_sceneModel';
 import type { type_keyframe_model, type_keyframes, type_time } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeToMarkerPosition instance.
  * 
- * NodeToMarkerPosition positions a model relative to a marker on another model, with optional reveal and slotting animations.
+ * NodeToMarkerPosition positions an object relative to a marker on another object, with optional reveal and slotting animations.
  */
 export interface NodeToMarkerPositionProps {
 	/** 
@@ -20,9 +20,9 @@ export interface NodeToMarkerPositionProps {
 	chapter: string;
 	
 	/** 
-	 * The SceneModel instance to position.
+	 * The SceneObject instance to position.
 	 */
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	
 	/** 
 	 * Timing specification for when this animation starts.
@@ -30,10 +30,10 @@ export interface NodeToMarkerPositionProps {
 	time: type_time;
 	
 	/** 
-	 * The marker on the parent model to position relative to.
+	 * The marker on the parent object to position relative to.
 	 * Must include parent reference for hierarchical positioning.
 	 */
-	marker: type_sceneModel_marker_withParent;
+	marker: type_sceneObject_marker_withParent;
 	
 	/** 
 	 * Position offset relative to the marker's position.
@@ -48,7 +48,7 @@ export interface NodeToMarkerPositionProps {
 	
 	/** 
 	 * Optional slotting animation configuration.
-	 * Slotting is the final animation that positions the model precisely at the marker.
+	 * Slotting is the final animation that positions the object precisely at the marker.
 	 */
 	slotting?: {
 		/** Duration of the slotting animation in seconds. */
@@ -61,7 +61,7 @@ export interface NodeToMarkerPositionProps {
 	
 	/** 
 	 * Optional reveal animation configuration.
-	 * Reveal makes the model visible before slotting.
+	 * Reveal makes the object visible before slotting.
 	 */
 	reveal?: {
 		/** Duration of the reveal animation in seconds. */
@@ -72,28 +72,28 @@ export interface NodeToMarkerPositionProps {
 }
 
 /**
- * Represents a node that positions a model relative to a marker on another model.
+ * Represents a node that positions an object relative to a marker on another object.
  * 
- * NodeToMarkerPosition creates a hierarchical positioning animation where a model is positioned
- * relative to a marker on a parent model. This enables complex assembly animations where parts
+ * NodeToMarkerPosition creates a hierarchical positioning animation where an object is positioned
+ * relative to a marker on a parent object. This enables complex assembly animations where parts
  * attach to other parts.
  * 
  * @remarks
  * This node generates three keyframes:
- * 1. Initial state: Model is invisible at the marker position with offset
- * 2. Reveal: Model fades in (if reveal is configured)
- * 3. Slotting: Model animates to the final marker position
+ * 1. Initial state: Object is invisible at the marker position with offset
+ * 2. Reveal: Object fades in (if reveal is configured)
+ * 3. Slotting: Object animates to the final marker position
  * 
- * The marker's position and rotation are transformed by the parent model's transform,
+ * The marker's position and rotation are transformed by the parent object's transform,
  * creating hierarchical positioning in 3D space.
  * 
  * @example
  * ```typescript
- * const marker = parentModel.getMarker('attachment-point');
+ * const marker = parentObject.getMarker('attachment-point');
  * const node = new NodeToMarkerPosition({
  *   name: 'attach-part',
  *   chapter: 'assembly',
- *   sceneModel: partModel,
+ *   sceneObject: partObject,
  *   time: { type: 'absolute', value: 5 },
  *   marker: marker,
  *   offset_position: new Vector3(0, 0, 0),
@@ -122,9 +122,9 @@ const toRadiansEuler = (deg: { x: number; y: number; z: number; order?: Euler['o
 export class NodeToMarkerPosition {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	time: type_time;
-	marker: type_sceneModel_marker_withParent;
+	marker: type_sceneObject_marker_withParent;
 	offset_position: Vector3;
 	offset_rotation?: Euler;
 	slotting: {
@@ -140,7 +140,7 @@ export class NodeToMarkerPosition {
 	constructor(props: NodeToMarkerPositionProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.time = props.time;
 		this.marker = props.marker;
 		this.offset_position = props.offset_position;
@@ -226,7 +226,7 @@ export class NodeToMarkerPosition {
 
 		const keyframe_initial: type_keyframe_model = {
 			id: initialKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: this.time,
 			duration: 1 / 240, // Minimal duration for initial state
 			opacity: 0,
@@ -243,7 +243,7 @@ export class NodeToMarkerPosition {
 
 		const keyframe_reveal: type_keyframe_model = {
 			id: revealKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: {
 				type: 'relative',
 				value: {
@@ -260,7 +260,7 @@ export class NodeToMarkerPosition {
 
 		const keyframe_slotting: type_keyframe_model = {
 			id: slottingKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: {
 				type: 'relative',
 				value: {

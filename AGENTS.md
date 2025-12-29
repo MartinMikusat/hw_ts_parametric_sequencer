@@ -65,7 +65,7 @@ The main public API for the library. Manages animation playback, timing, and sta
 - `duration`: Total duration of the loaded scene
 - `time`: Current playback time
 - `isPlaying`: Whether animation is currently playing
-- `sceneModels`: Set of SceneModel instances in the scene
+- `sceneObjects`: Set of SceneObject instances in the scene
 
 #### 2. **Node System** (`src/lib/reconciliation/nodes/`)
 Nodes represent declarative animation instructions. Each node type generates keyframes when reconciled.
@@ -87,7 +87,7 @@ All nodes implement:
 
 **Model Keyframes** (`type_keyframe_model`):
 - `id`: Unique identifier
-- `sceneModel`: Reference to the SceneModel being animated
+- `sceneObject`: Reference to the SceneObject being animated
 - `time`: Timing specification (absolute, relative, or multiple dependencies)
 - `duration`: Duration of this keyframe
 - `position`: Optional position change (absolute, relative, or marker-based)
@@ -114,7 +114,7 @@ All nodes implement:
 **Step 1: Node Reconciliation** (`nodes_reconcile`)
 - Converts scene nodes into keyframes
 - Separates model and camera keyframes
-- Collects SceneModel references
+- Collects SceneObject references
 
 **Step 2: Time Reconciliation** (`reconcileKeyframesTime`)
 - Resolves relative time dependencies
@@ -157,22 +157,21 @@ All nodes implement:
 
 **Important**: All rotations in the public API are in DEGREES, but internally converted to radians for math operations.
 
-#### 6. **SceneModel** (`src/lib/types/types_sceneModel.ts`)
+#### 6. **SceneObject** (`src/lib/types/types_sceneModel.ts`)
 
-Represents a 3D model with optional markers for hierarchical positioning.
+Represents a scene object with optional markers for hierarchical positioning.
 
 **Properties:**
-- `model`: Model definition data
-- `sceneModelID`: Unique identifier
+- `sceneObjectID`: Unique identifier
 - `markers`: Record of marker IDs to marker definitions
 
 **Methods:**
 - `getMarkerIDs()`: Returns all marker IDs
 - `getMarker(markerID)`: Gets a marker with parent reference
 
-**Markers** (`type_sceneModel_marker`):
-- `position`: Local position relative to model (Vector3)
-- `rotation`: Local rotation relative to model (Euler, in degrees)
+**Markers** (`type_sceneObject_marker`):
+- `position`: Local position relative to object (Vector3)
+- `rotation`: Local rotation relative to object (Euler, in degrees)
 
 ---
 
@@ -182,9 +181,9 @@ Represents a 3D model with optional markers for hierarchical positioning.
 ```typescript
 const scene: SceneDefinition = [
   new NodeMain({
-    name: 'model1-position',
+    name: 'object1-position',
     chapter: 'intro',
-    sceneModel: model1,
+    sceneObject: object1,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector3(1, 0, 0) },
@@ -194,7 +193,7 @@ const scene: SceneDefinition = [
   new NodeCamera({
     name: 'camera1',
     chapter: 'intro',
-    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'model1-position' } },
+    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'object1-position' } },
     duration: 1.5,
     rotationX: 45,
     rotationY: -30,
@@ -313,26 +312,15 @@ describe('reconcile_animationState', () => {
 
 **Issue 1**: `any` type usage in Sequencer
 ```typescript
-// src/lib/Sequencer.ts:23
-private _currentSceneModels: Set<any> | null = null;
+// src/lib/Sequencer.ts:132
+private _currentSceneObjects: Set<any> | null = null;
 ```
 **Fix**: Use proper type
 ```typescript
-private _currentSceneModels: Set<SceneModel> | null = null;
+private _currentSceneObjects: Set<SceneObject> | null = null;
 ```
 
-**Issue 2**: `any` type in SceneModel
-```typescript
-// src/lib/types/types_sceneModel.ts:29
-model: any;
-```
-**Fix**: Use generics or proper type
-```typescript
-export class SceneModel<T = type_modelDefinition> {
-  model: T;
-  // ...
-}
-```
+**Note**: The `model` property has been removed from SceneObject as it was never used.
 
 ##### 3. **Quaternion SLERP Bug**
 
@@ -434,18 +422,18 @@ if (!this._keyframes) {
 ```typescript
 keyframes.forEach((extendedKeyframe) => {
   // Processes each keyframe, may need to look up parent states
-  const parentState = modelStates.get(parentSceneModelID);
+  const parentState = modelStates.get(parentSceneObjectID);
 });
 ```
 
 **Recommendation**: Pre-index models by ID for O(1) lookups:
 ```typescript
-// Pre-initialize all models in first pass
+// Pre-initialize all objects in first pass
 const modelStates = new Map<string, ModelAnimationState>();
 keyframes.forEach((extendedKeyframe) => {
-  const sceneModelID = getModelIDFromKeyframe(extendedKeyframe.keyframe);
-  if (!modelStates.has(sceneModelID)) {
-    modelStates.set(sceneModelID, initialState);
+  const sceneObjectID = getObjectIDFromKeyframe(extendedKeyframe.keyframe);
+  if (!modelStates.has(sceneObjectID)) {
+    modelStates.set(sceneObjectID, initialState);
   }
 });
 

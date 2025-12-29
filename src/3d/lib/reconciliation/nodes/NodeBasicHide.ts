@@ -1,5 +1,5 @@
 import { Euler, Vector3 } from '../../math';
-import type { SceneModel } from '../../types/types_sceneModel';
+import type { SceneObject } from '../../types/types_sceneModel';
 import type { type_keyframe_model, type_time } from '../keyframes/types';
 
 /**
@@ -19,9 +19,9 @@ export interface NodeBasicHideProps {
 	chapter: string;
 	
 	/** 
-	 * The SceneModel instance to hide.
+	 * The SceneObject instance to hide.
 	 */
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	
 	/** 
 	 * Duration of the hide animation in seconds.
@@ -45,10 +45,10 @@ export interface NodeBasicHideProps {
 }
 
 /**
- * Represents a basic hide animation node for 3D models.
+ * Represents a basic hide animation node for 3D objects.
  * 
  * NodeBasicHide creates a fade-out effect, optionally combined with a position/rotation offset.
- * The model fades from its current opacity to 0 over the specified duration.
+ * The object fades from its current opacity to 0 over the specified duration.
  * 
  * @remarks
  * This node generates a single keyframe that sets opacity to 0 and applies
@@ -57,9 +57,9 @@ export interface NodeBasicHideProps {
  * @example
  * ```typescript
  * const hideNode = new NodeBasicHide({
- *   name: 'hide-model1',
+ *   name: 'hide-object1',
  *   chapter: 'outro',
- *   sceneModel: myModel,
+ *   sceneObject: myObject,
  *   time: { type: 'absolute', value: 10 },
  *   duration: 1,
  *   offsetPosition: new Vector3(0, -5, 0), // Move down while hiding
@@ -70,7 +70,7 @@ export interface NodeBasicHideProps {
 export class NodeBasicHide {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	duration: number;
 	time: type_time;
 	offsetPosition: Vector3;
@@ -79,7 +79,7 @@ export class NodeBasicHide {
 	constructor(props: NodeBasicHideProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
 		this.offsetPosition = props.offsetPosition ?? new Vector3(0, 0, 0);
@@ -110,7 +110,7 @@ export class NodeBasicHide {
 		return [
 			{
 				id: keyframeID_hide,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				opacity: 0.0,
 				duration: this.duration,

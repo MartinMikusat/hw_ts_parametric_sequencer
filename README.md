@@ -26,13 +26,13 @@ The library provides separate entry points for 2D and 3D functionality:
 ### 3D Animations
 
 ```typescript
-import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 ```
 
 ### 2D Animations
 
 ```typescript
-import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 ```
 
 **Important**: There is no default/root export. You must explicitly import from `/2d` or `/3d`.
@@ -42,21 +42,20 @@ import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneModel2D } from 'hw
 ### 3D Example
 
 ```typescript
-import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
-// Create a scene model
-const model1 = new SceneModel(
-  { name: 'MyModel' },
-  'model1',
+// Create a scene object
+const object1 = new SceneObject(
+  'object1',
   {} // markers
 );
 
 // Define animation scene
 const scene = [
   new NodeMain({
-    name: 'model1-position',
+    name: 'object1-position',
     chapter: 'intro',
-    sceneModel: model1,
+    sceneObject: object1,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector3(1, 0, 0) },
@@ -97,21 +96,20 @@ sequencer.play();
 ### 2D Example
 
 ```typescript
-import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
-// Create a 2D scene model
-const model1 = new SceneModel2D(
-  { name: 'MyModel' },
-  'model1',
+// Create a 2D scene object
+const object1 = new SceneObject2D(
+  'object1',
   {} // markers
 );
 
 // Define animation scene
 const scene = [
   new NodeMain2D({
-    name: 'model1-position',
+    name: 'object1-position',
     chapter: 'intro',
-    sceneModel: model1,
+    sceneObject: object1,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector2(100, 50) },
@@ -215,7 +213,7 @@ Both `Sequencer2D` and `Sequencer3D` have identical lifecycle APIs:
 - `NodeBasicReveal`: Reveals a model with fade-in and position animation
 - `NodeBasicHide`: Hides a model with fade-out
 - `NodeBasicUnhide`: Unhides a model
-- `NodeToMarkerPosition`: Positions a model relative to a marker on another model (hierarchical)
+- `NodeToMarkerPosition`: Positions an object relative to a marker on another object (hierarchical)
 
 #### 2D Nodes (`hw-ts-parametric-sequencer/2d`)
 - `NodeMain2D`: Basic model animation (position2D, angle, opacity, scale)
@@ -223,7 +221,7 @@ Both `Sequencer2D` and `Sequencer3D` have identical lifecycle APIs:
 - `NodeBasicReveal2D`: Reveals a model with fade-in and position animation
 - `NodeBasicHide2D`: Hides a model with fade-out
 - `NodeBasicUnhide2D`: Unhides a model
-- `NodeToMarkerPosition2D`: Positions a model relative to a marker (simple offset)
+- `NodeToMarkerPosition2D`: Positions an object relative to a marker (simple offset)
 
 ### Math Utilities
 

@@ -1,10 +1,10 @@
-import type { SceneModel2D } from '../../types/types_sceneModel';
+import type { SceneObject2D } from '../../types/types_sceneModel';
 import type { type_keyframe_model2D, type_keyframe_position2D, type_keyframe_rotation2D, type_time } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeMain2D instance.
  * 
- * NodeMain2D is the primary node type for animating 2D models with position, angle, opacity, and scale changes.
+ * NodeMain2D is the primary node type for animating 2D objects with position, angle, opacity, and scale changes.
  */
 export interface NodeMain2DProps {
 	/** 
@@ -19,9 +19,9 @@ export interface NodeMain2DProps {
 	chapter: string;
 	
 	/** 
-	 * The SceneModel2D instance to animate.
+	 * The SceneObject2D instance to animate.
 	 */
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	
 	/** 
 	 * Timing specification for when this animation starts.
@@ -34,13 +34,13 @@ export interface NodeMain2DProps {
 	duration: number;
 	
 	/** 
-	 * Optional 2D position change for the model.
+	 * Optional 2D position change for the object.
 	 * Can be absolute (world position) or relative (offset from current).
 	 */
 	position?: type_keyframe_position2D;
 	
 	/** 
-	 * Optional rotation angle change for the model in degrees.
+	 * Optional rotation angle change for the object in degrees.
 	 * Can be absolute (world angle) or relative (offset from current).
 	 */
 	rotation?: type_keyframe_rotation2D;
@@ -57,17 +57,17 @@ export interface NodeMain2DProps {
 }
 
 /**
- * Represents a main animation node for 2D models.
+ * Represents a main animation node for 2D objects.
  * 
- * NodeMain2D is used to animate a model's position, angle, opacity, and/or scale over time.
- * It's the most commonly used node type for basic 2D model animations.
+ * NodeMain2D is used to animate an object's position, angle, opacity, and/or scale over time.
+ * It's the most commonly used node type for basic 2D object animations.
  * 
  * @example
  * ```typescript
  * const node = new NodeMain2D({
- *   name: 'model1-move',
+ *   name: 'object1-move',
  *   chapter: 'intro',
- *   sceneModel: myModel,
+ *   sceneObject: myObject,
  *   time: { type: 'absolute', value: 0 },
  *   duration: 2,
  *   position: { type: 'absolute', value: new Vector2(100, 50) },
@@ -80,7 +80,7 @@ export interface NodeMain2DProps {
 export class NodeMain2D {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	time: type_time;
 	duration: number;
 	position?: type_keyframe_position2D;
@@ -91,7 +91,7 @@ export class NodeMain2D {
 	constructor(props: NodeMain2DProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.time = props.time;
 		this.duration = props.duration;
 		this.position = props.position;
@@ -122,7 +122,7 @@ export class NodeMain2D {
 		return [
 			{
 				id: keyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				duration: this.duration,
 				position: this.position,

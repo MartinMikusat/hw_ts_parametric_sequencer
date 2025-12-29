@@ -18,15 +18,15 @@ The 2D animation system provides a simplified API for 2D scenes with position, a
 ## Basic 2D Animation
 
 ```typescript
-import { Sequencer2D, NodeMain2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+import { Sequencer2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
-const model = new SceneModel2D({ name: 'Sprite' }, 'sprite1', {});
+const object = new SceneObject2D('sprite1', {});
 
 const scene = [
   new NodeMain2D({
     name: 'move-sprite',
     chapter: 'intro',
-    sceneModel: model,
+    sceneObject: object,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector2(100, 50) },
@@ -102,7 +102,7 @@ import { NodeBasicReveal2D, NodeBasicHide2D, Vector2 } from 'hw-ts-parametric-se
 const reveal = new NodeBasicReveal2D({
   name: 'reveal-sprite',
   chapter: 'intro',
-  sceneModel: model,
+  sceneObject: object,
   time: { type: 'absolute', value: 0 },
   duration: 1,
   startingPosition: new Vector2(-100, 0),
@@ -113,7 +113,7 @@ const reveal = new NodeBasicReveal2D({
 const hide = new NodeBasicHide2D({
   name: 'hide-sprite',
   chapter: 'outro',
-  sceneModel: model,
+  sceneObject: object,
   time: { type: 'absolute', value: 5 },
   duration: 1,
   offsetPosition: new Vector2(0, -50), // Move down while hiding
@@ -126,12 +126,12 @@ const hide = new NodeBasicHide2D({
 ```typescript
 import { NodeToMarkerPosition2D } from 'hw-ts-parametric-sequencer/2d';
 
-// Position a model relative to a marker on another model
-const marker = parentModel.getMarker('attachment-point');
+// Position an object relative to a marker on another object
+const marker = parentObject.getMarker('attachment-point');
 const attachNode = new NodeToMarkerPosition2D({
   name: 'attach-part',
   chapter: 'assembly',
-  sceneModel: partModel,
+  sceneObject: partObject,
   time: { type: 'absolute', value: 2 },
   marker: marker,
   offset_position: new Vector2(0, 0),

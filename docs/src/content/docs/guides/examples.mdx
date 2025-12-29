@@ -6,7 +6,7 @@ description: Code examples and integration patterns
 ## Three.js Integration
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import { Sequencer3D, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 import * as THREE from 'three';
 
 const scene = new THREE.Scene();
@@ -19,15 +19,15 @@ const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
-// Create scene model
-const model = new SceneModel({ name: 'Box' }, 'box1', {});
+// Create scene object
+const object = new SceneObject('box1', {});
 
 // Define animation
 const animationScene = [
   new NodeMain({
     name: 'rotate-box',
     chapter: 'intro',
-    sceneModel: model,
+    sceneObject: object,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     rotation: { type: 'relative', value: new Euler(0, Math.PI, 0) }
@@ -83,18 +83,18 @@ animate();
 ## Canvas 2D Integration
 
 ```typescript
-import { Sequencer2D, NodeMain2D, Vector2, SceneModel2D } from 'hw-ts-parametric-sequencer/2d';
+import { Sequencer2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
-const model = new SceneModel2D({ name: 'Sprite' }, 'sprite1', {});
+const object = new SceneObject2D('sprite1', {});
 
 const scene = [
   new NodeMain2D({
     name: 'move-sprite',
     chapter: 'intro',
-    sceneModel: model,
+    sceneObject: object,
     time: { type: 'absolute', value: 0 },
     duration: 2,
     position: { type: 'absolute', value: new Vector2(100, 50) },
@@ -134,19 +134,19 @@ sequencer.play();
 
 ```typescript
 import { useEffect, useRef } from 'react';
-import { Sequencer3D, NodeMain, Vector3, SceneModel } from 'hw-ts-parametric-sequencer/3d';
+import { Sequencer3D, NodeMain, Vector3, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
 function AnimatedScene() {
   const sequencerRef = useRef<Sequencer3D | null>(null);
   
   useEffect(() => {
-    const model = new SceneModel({ name: 'Model' }, 'model1', {});
+    const object = new SceneObject('object1', {});
     
     const scene = [
       new NodeMain({
         name: 'animate',
         chapter: 'intro',
-        sceneModel: model,
+        sceneObject: object,
         time: { type: 'absolute', value: 0 },
         duration: 2,
         position: { type: 'absolute', value: new Vector3(1, 0, 0) }
@@ -177,11 +177,11 @@ function AnimatedScene() {
 ## Complex Timing Dependencies
 
 ```typescript
-// Animation 1: Move model
+// Animation 1: Move object
 const moveNode = new NodeMain({
-  name: 'move-model',
+  name: 'move-object',
   chapter: 'intro',
-  sceneModel: model,
+  sceneObject: object,
   time: { type: 'absolute', value: 0 },
   duration: 2,
   position: { type: 'absolute', value: new Vector3(1, 0, 0) }
@@ -196,7 +196,7 @@ const cameraNode = new NodeCamera({
     value: {
       offset: 0.5,
       side: 'Start',
-      parentID: 'move-model'
+      parentID: 'move-object'
     }
   },
   duration: 1.5,
@@ -210,13 +210,13 @@ const cameraNode = new NodeCamera({
 const fadeNode = new NodeBasicHide({
   name: 'fade-out',
   chapter: 'outro',
-  sceneModel: model,
+  sceneObject: object,
   time: {
     type: 'relative',
     value: {
       offset: -0.3,
       side: 'End',
-      parentID: 'move-model'
+      parentID: 'move-object'
     }
   },
   duration: 1

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { reconcile_animationState } from './reconcile_animationState';
-import { Vector3, Quaternion, Euler } from '../../math';
+import { Vector3, Euler } from '../../math';
 import type { type_separatedKeyframes_extended } from '../keyframes/types';
 
 describe('reconcile_animationState', () => {
@@ -12,7 +12,7 @@ describe('reconcile_animationState', () => {
                         id: 'kf1',
                         duration: 2,
                         time: { type: 'absolute', value: 0 },
-                        sceneModel: { sceneModelID: 'model1' } as any,
+                        sceneObject: { sceneObjectID: 'model1' } as any,
                         position: { type: 'absolute', value: new Vector3(0, 0, 0) }
                     },
                     reconciled: { startTime: 0, endTime: 2 },
@@ -23,7 +23,7 @@ describe('reconcile_animationState', () => {
                         id: 'kf2',
                         duration: 2,
                         time: { type: 'absolute', value: 2 },
-                        sceneModel: { sceneModelID: 'model1' } as any,
+                        sceneObject: { sceneObjectID: 'model1' } as any,
                         position: { type: 'absolute', value: new Vector3(10, 0, 0) }
                     },
                     reconciled: { startTime: 2, endTime: 4 },
@@ -56,8 +56,8 @@ describe('reconcile_animationState', () => {
     });
 
     it('should handle marker positioning', () => {
-        const parentModel = { sceneModelID: 'parent' };
-        const childModel = { sceneModelID: 'child' };
+        const parentModel = { sceneObjectID: 'parent' };
+        const childModel = { sceneObjectID: 'child' };
 
         const mockKeyframes: type_separatedKeyframes_extended = {
             modelKeyframes: [
@@ -67,7 +67,7 @@ describe('reconcile_animationState', () => {
                         id: 'parent-move',
                         duration: 2,
                         time: { type: 'absolute', value: 0 },
-                        sceneModel: parentModel as any,
+                        sceneObject: parentModel as any,
                         position: { type: 'absolute', value: new Vector3(10, 0, 0) }
                     },
                     reconciled: { startTime: 0, endTime: 2 },
@@ -79,7 +79,7 @@ describe('reconcile_animationState', () => {
                         id: 'child-attach',
                         duration: 2,
                         time: { type: 'absolute', value: 0 },
-                        sceneModel: childModel as any,
+                        sceneObject: childModel as any,
                         position: {
                             type: 'marker',
                             value: {

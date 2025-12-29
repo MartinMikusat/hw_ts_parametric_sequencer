@@ -1,10 +1,10 @@
-import type { SceneModel2D } from '../../types/types_sceneModel';
+import type { SceneObject2D } from '../../types/types_sceneModel';
 import type { type_keyframe_model2D, type_time } from '../keyframes/types';
 
 export interface NodeBasicUnhide2DProps {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
 }
@@ -12,14 +12,14 @@ export interface NodeBasicUnhide2DProps {
 export class NodeBasicUnhide2D {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
 
 	constructor(props: NodeBasicUnhide2DProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
 	}
@@ -42,7 +42,7 @@ export class NodeBasicUnhide2D {
 		return [
 			{
 				id: keyframeID,
-				sceneModel: this.sceneModel,
+				sceneObject: this.sceneObject,
 				time: this.time,
 				opacity: 1.0,
 				duration: this.duration,

@@ -1,5 +1,5 @@
 import type { Vector2 } from '../math/Vector2';
-import type { SceneModel2D, type_sceneModel_marker2D_withParent } from './types_sceneModel';
+import type { SceneObject2D, type_sceneObject_marker2D_withParent } from './types_sceneModel';
 
 export type type_keyframe_position2D =
 	| {
@@ -12,7 +12,7 @@ export type type_keyframe_position2D =
 	}
 	| {
 		type: 'marker';
-		value: type_sceneModel_marker2D_withParent;
+		value: type_sceneObject_marker2D_withParent;
 	};
 
 export type type_keyframe_rotation2D =
@@ -53,7 +53,7 @@ export type type_keyframe_model2D = {
 	position?: type_keyframe_position2D;
 	rotation?: type_keyframe_rotation2D;
 	scale?: number;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	time: type_time;
 };
 

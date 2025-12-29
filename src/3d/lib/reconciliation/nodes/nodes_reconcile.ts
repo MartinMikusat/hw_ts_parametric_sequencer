@@ -1,5 +1,5 @@
 import type { type_keyframe_camera, type_keyframe_model, type_separatedKeyframes } from '../keyframes/types';
-import type { SceneModel } from '../../types/types_sceneModel';
+import type { SceneObject } from '../../types/types_sceneModel';
 import type { NodeBasicHide } from './NodeBasicHide';
 import type { NodeBasicReveal } from './NodeBasicReveal';
 import type { NodeBasicUnhide } from './NodeBasicUnhide';
@@ -24,21 +24,21 @@ export type type_reconciliation_keyframe = type_keyframe_model | type_keyframe_c
  * the generated keyframes by type for more efficient downstream processing.
  *
  * @param nodes An array of node instances (e.g., NodeBasicReveal, NodeCamera, NodePosition).
- * @returns An object containing separated arrays of model and camera keyframes and scene models used.
+ * @returns An object containing separated arrays of model and camera keyframes and scene objects used.
  */
-export const nodes_reconcile = (nodes: Array<type_reconciliation_node>): type_separatedKeyframes & { sceneModels: Set<SceneModel> } => {
+export const nodes_reconcile = (nodes: Array<type_reconciliation_node>): type_separatedKeyframes & { sceneObjects: Set<SceneObject> } => {
 	const modelKeyframes: type_keyframe_model[] = [];
 	const cameraKeyframes: type_keyframe_camera[] = [];
-	const sceneModels = new Set<SceneModel>();
+	const sceneObjects = new Set<SceneObject>();
 
 	// Iterate through each node and separate keyframes by type
 	nodes.forEach((node) => {
 		const keyframes = node.reconcile();
 		keyframes.forEach((kf) => {
 			// Use property checking to separate keyframes
-			if ('sceneModel' in kf) {
+			if ('sceneObject' in kf) {
 				modelKeyframes.push(kf as type_keyframe_model);
-				sceneModels.add((kf as type_keyframe_model).sceneModel);
+				sceneObjects.add((kf as type_keyframe_model).sceneObject);
 			} else {
 				cameraKeyframes.push(kf as type_keyframe_camera);
 			}
@@ -48,7 +48,7 @@ export const nodes_reconcile = (nodes: Array<type_reconciliation_node>): type_se
 	return {
 		modelKeyframes,
 		cameraKeyframes,
-		sceneModels,
+		sceneObjects,
 	};
 };
 

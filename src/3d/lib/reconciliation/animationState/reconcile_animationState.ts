@@ -114,8 +114,8 @@ export interface CameraAnimationState3D {
  */
 export interface AnimationSnapshot3D {
 	/** 
-	 * Map of all model states, keyed by sceneModelID.
-	 * Only models that have been referenced in the scene definition are included.
+	 * Map of all model states, keyed by sceneObjectID.
+	 * Only objects that have been referenced in the scene definition are included.
 	 */
 	models: Map<string, ModelAnimationState3D>;
 	
@@ -170,14 +170,14 @@ const createQuaternionFromEuler = (
 };
 
 /**
- * Helper to get string ID from sceneModel
+ * Helper to get string ID from sceneObject
  */
-const getModelIDFromKeyframe = (modelKeyframe: type_keyframe_model): string => {
-	if (modelKeyframe.sceneModel && modelKeyframe.sceneModel.sceneModelID) {
-		return modelKeyframe.sceneModel.sceneModelID;
+const getObjectIDFromKeyframe = (modelKeyframe: type_keyframe_model): string => {
+	if (modelKeyframe.sceneObject && modelKeyframe.sceneObject.sceneObjectID) {
+		return modelKeyframe.sceneObject.sceneObjectID;
 	}
 	throw new Error(
-		`Cannot determine SceneModel ID from keyframe. ` +
+		`Cannot determine SceneObject ID from keyframe. ` +
 		`This indicates a bug in the keyframe structure or type definitions.`
 	);
 };
@@ -316,9 +316,9 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 	// --- Model State Initialization ---
 	keyframes.forEach((extendedKeyframe) => {
 		const modelKeyframe = extendedKeyframe.keyframe;
-		const sceneModelID = getModelIDFromKeyframe(modelKeyframe);
-		if (!modelStates.has(sceneModelID)) {
-			modelStates.set(sceneModelID, {
+		const sceneObjectID = getObjectIDFromKeyframe(modelKeyframe);
+		if (!modelStates.has(sceneObjectID)) {
+			modelStates.set(sceneObjectID, {
 				opacity: 0.0,
 				position: new Vector3(0.0, 0.0, 0.0),
 				rotation: new Quaternion(),
@@ -333,12 +333,12 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 		const timeStart = extendedKeyframe.reconciled.startTime;
 		const timeEnd = extendedKeyframe.extended.endTime;
 		const duration = timeEnd - timeStart;
-		const sceneModelID = getModelIDFromKeyframe(modelKeyframe);
-		const previousState = modelStates.get(sceneModelID);
+		const sceneObjectID = getObjectIDFromKeyframe(modelKeyframe);
+		const previousState = modelStates.get(sceneObjectID);
 
 		if (!previousState) {
 			throw new Error(
-				`Model state not found during reconciliation for ID: ${sceneModelID}. ` +
+				`Model state not found during reconciliation for ID: ${sceneObjectID}. ` +
 				`This indicates a bug in the reconciliation pipeline - all models must be initialized before processing their keyframes.`
 			);
 		}
@@ -379,8 +379,8 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			if (positionInfo.type === 'marker') {
 				// Type of positionInfo.value is narrowed here to the marker structure
 				const keyframeMarkerData = positionInfo.value;
-				const parentSceneModelID = keyframeMarkerData.parent.sceneModelID;
-				const parentState = modelStates.get(parentSceneModelID);
+				const parentSceneObjectID = keyframeMarkerData.parent.sceneObjectID;
+				const parentState = modelStates.get(parentSceneObjectID);
 
 				// Pass previous state opacity to marker calculation, adjust result opacity
 				const markerTransform = _calculateMarkerTransform(
@@ -408,7 +408,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			rotation: finalRotation,
 			cumulativeModelRotation: finalCumulativeRotation,
 		};
-		modelStates.set(sceneModelID, nextState);
+		modelStates.set(sceneObjectID, nextState);
 	});
 
 	return modelStates;

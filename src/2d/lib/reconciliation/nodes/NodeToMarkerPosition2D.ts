@@ -1,5 +1,5 @@
 import { Vector2 } from '../../math/Vector2';
-import type { SceneModel2D, type_sceneModel_marker2D_withParent } from '../../types/types_sceneModel';
+import type { SceneObject2D, type_sceneObject_marker2D_withParent } from '../../types/types_sceneModel';
 import type { type_keyframe_model2D, type_keyframes2D, type_time } from '../keyframes/types';
 
 /**
@@ -8,9 +8,9 @@ import type { type_keyframe_model2D, type_keyframes2D, type_time } from '../keyf
 export interface NodeToMarkerPosition2DProps {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	time: type_time;
-	marker: type_sceneModel_marker2D_withParent;
+	marker: type_sceneObject_marker2D_withParent;
 	offset_position: Vector2;
 	offset_rotation?: number; // Angle in degrees
 	// Optional slotting definition
@@ -27,14 +27,14 @@ export interface NodeToMarkerPosition2DProps {
 }
 
 /**
- * Represents a node that moves a 2D scene model to a marker position, including reveal and slotting animations.
+ * Represents a node that moves a 2D scene object to a marker position, including reveal and slotting animations.
  */
 export class NodeToMarkerPosition2D {
 	name: string;
 	chapter: string;
-	sceneModel: SceneModel2D;
+	sceneObject: SceneObject2D;
 	time: type_time;
-	marker: type_sceneModel_marker2D_withParent;
+	marker: type_sceneObject_marker2D_withParent;
 	offset_position: Vector2;
 	offset_rotation: number;
 	slotting: {
@@ -50,7 +50,7 @@ export class NodeToMarkerPosition2D {
 	constructor(props: NodeToMarkerPosition2DProps) {
 		this.name = props.name;
 		this.chapter = props.chapter;
-		this.sceneModel = props.sceneModel;
+		this.sceneObject = props.sceneObject;
 		this.time = props.time;
 		this.marker = props.marker;
 		this.offset_position = props.offset_position;
@@ -105,7 +105,7 @@ export class NodeToMarkerPosition2D {
 
 		const keyframe_initial: type_keyframe_model2D = {
 			id: initialKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: this.time,
 			duration: 1 / 240, // Minimal duration for initial state
 			opacity: 0,
@@ -122,7 +122,7 @@ export class NodeToMarkerPosition2D {
 
 		const keyframe_reveal: type_keyframe_model2D = {
 			id: revealKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: {
 				type: 'relative',
 				value: {
@@ -139,7 +139,7 @@ export class NodeToMarkerPosition2D {
 
 		const keyframe_slotting: type_keyframe_model2D = {
 			id: slottingKeyframeID,
-			sceneModel: this.sceneModel,
+			sceneObject: this.sceneObject,
 			time: {
 				type: 'relative',
 				value: {

@@ -1,5 +1,5 @@
 import type { Euler, Vector3 } from '../../math';
-import type { SceneModel, type_sceneModel_marker_withParent } from '../../types/types_sceneModel';
+import type { SceneObject, type_sceneObject_marker_withParent } from '../../types/types_sceneModel';
 
 export type type_keyframe_position =
 	| {
@@ -12,7 +12,7 @@ export type type_keyframe_position =
 	}
 	| {
 		type: 'marker';
-		value: type_sceneModel_marker_withParent;
+		value: type_sceneObject_marker_withParent;
 	};
 
 export type type_keyframe_rotation =
@@ -56,7 +56,7 @@ export type type_keyframe_model = {
 	opacity?: number;
 	position?: type_keyframe_position;
 	rotation?: type_keyframe_rotation;
-	sceneModel: SceneModel;
+	sceneObject: SceneObject;
 	time: type_time;
 };
 

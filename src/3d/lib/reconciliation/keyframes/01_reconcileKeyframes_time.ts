@@ -322,7 +322,7 @@ export const reconcileKeyframesTime = (separatedKeyframes: type_separatedKeyfram
 	const cameraKeyframes: type_keyframes_reconciledTime_camera[] = [];
 
 	reconciledAll.forEach((reconciled) => {
-		if ('sceneModel' in reconciled.keyframe) {
+		if ('sceneObject' in reconciled.keyframe) {
 			modelKeyframes.push(reconciled as type_keyframes_reconciledTime_model);
 		} else {
 			cameraKeyframes.push(reconciled as type_keyframes_reconciledTime_camera);

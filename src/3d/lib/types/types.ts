@@ -2,7 +2,7 @@ import type { Vector3, Quaternion } from '../math';
 
 // --------------------------------------------
 // 3D models ----------------------------------
-export type type_markerSceneModelID = string;
+export type type_markerSceneObjectID = string;
 
 export type type_partType = 'Printed' | 'Hardware' | 'PCB' | 'Product';
 
