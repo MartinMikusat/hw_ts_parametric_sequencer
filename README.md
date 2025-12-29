@@ -26,13 +26,13 @@ The library provides separate entry points for 2D and 3D functionality:
 ### 3D Animations
 
 ```typescript
-import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 ```
 
 ### 2D Animations
 
 ```typescript
-import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 ```
 
 **Important**: There is no default/root export. You must explicitly import from `/2d` or `/3d`.
@@ -42,7 +42,7 @@ import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'h
 ### 3D Example
 
 ```typescript
-import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
 // Create a scene object
 const object1 = new SceneObject(
@@ -65,7 +65,7 @@ const scene = [
   new NodeCamera({
     name: 'camera1',
     chapter: 'intro',
-    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'model1-position' } },
+    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'object1-position' } },
     duration: 1.5,
     rotationX: 45,
     rotationY: -30,
@@ -74,29 +74,32 @@ const scene = [
   })
 ];
 
-// Create sequencer and play
-const sequencer = new Sequencer3D({
-  onUpdate: (snapshot) => {
-    // Update your 3D scene with snapshot.models and snapshot.camera
-    snapshot.models.forEach((state, modelID) => {
-      // Apply state.position (Vector3), state.rotation (Quaternion), state.opacity to your model
-    });
-    // Apply snapshot.camera (rotationX, rotationY, target, zoom) to your camera
-  },
-  onComplete: () => {
-    console.log('Animation complete!');
-  },
-  loop: false
-});
+// Reconcile the scene (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene(scene);
+console.log(`Animation duration: ${reconciled.duration}s`);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Your own animation loop - get state at any time
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  // Update your 3D scene with state.models and state.camera
+  state.models.forEach((modelState, modelID) => {
+    // Apply modelState.position (Vector3), modelState.rotation (Quaternion), modelState.opacity to your model
+  });
+  // Apply state.camera (rotationX, rotationY, target, zoom) to your camera
+}
+
+animate();
 ```
 
 ### 2D Example
 
 ```typescript
-import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
 // Create a 2D scene object
 const object1 = new SceneObject2D(
@@ -120,7 +123,7 @@ const scene = [
   new NodeCamera2D({
     name: 'camera1',
     chapter: 'intro',
-    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'model1-position' } },
+    time: { type: 'relative', value: { offset: 0.5, side: 'Start', parentID: 'object1-position' } },
     duration: 1.5,
     pan: new Vector2(0, 0),
     zoom: 1.2,
@@ -128,24 +131,27 @@ const scene = [
   })
 ];
 
-// Create sequencer and play
-const sequencer = new Sequencer2D({
-  onUpdate: (snapshot) => {
-    // Update your 2D scene with snapshot.models and snapshot.camera
-    snapshot.models.forEach((state, modelID) => {
-      // Apply state.position (Vector2), state.rotation (number in degrees), 
-      // state.opacity, state.scale to your model
-    });
-    // Apply snapshot.camera (pan, zoom, rotation) to your camera
-  },
-  onComplete: () => {
-    console.log('Animation complete!');
-  },
-  loop: false
-});
+// Reconcile the scene (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene2D(scene);
+console.log(`Animation duration: ${reconciled.duration}s`);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Your own animation loop - get state at any time
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState2D(reconciled, currentTime);
+  
+  // Update your 2D scene with state.models and state.camera
+  state.models.forEach((modelState, modelID) => {
+    // Apply modelState.position (Vector2), modelState.rotation (number in degrees), 
+    // modelState.opacity, modelState.scale to your model
+  });
+  // Apply state.camera (pan, zoom, rotation) to your camera
+}
+
+animate();
 ```
 
 ## Key Differences: 2D vs 3D
@@ -168,25 +174,43 @@ sequencer.play();
 
 ## Migration from Previous Versions
 
-If you were using the library before the 2D/3D split:
+### From v1.x (Class-based API with playback)
 
-1. **Update imports**: Change from default import to explicit `/3d` import:
+If you were using the class-based API with `Sequencer2D` or `Sequencer3D`:
+
+1. **Replace Sequencer class with functional API**:
    ```typescript
    // Before
-   import { Sequencer, ... } from 'hw-ts-parametric-sequencer';
+   const sequencer = new Sequencer2D({ onUpdate, onComplete, loop });
+   sequencer.loadScene(scene);
+   sequencer.play();
+   const state = sequencer.getAnimationState();
    
    // After
-   import { Sequencer3D, ... } from 'hw-ts-parametric-sequencer/3d';
+   const reconciled = reconcileScene2D(scene);
+   const state = reconcile_animationState2D(reconciled, currentTime);
    ```
 
-2. **Rename Sequencer**: `Sequencer` → `Sequencer3D`
+2. **Implement your own playback loop**:
+   ```typescript
+   // You now control timing yourself
+   let startTime = Date.now();
+   function animate() {
+     requestAnimationFrame(animate);
+     const time = (Date.now() - startTime) / 1000;
+     const state = reconcile_animationState2D(reconciled, time);
+     // Update your scene
+   }
+   ```
 
-3. **Update type names**: 
-   - `SceneDefinition` → `SceneDefinition3D`
-   - `SequencerOptions` → `SequencerOptions3D`
-   - `AnimationSnapshot` → `AnimationSnapshot3D`
-
-4. **No other changes needed**: The API and behavior remain identical for 3D functionality.
+3. **Update imports**:
+   ```typescript
+   // Before
+   import { Sequencer2D, ... } from 'hw-ts-parametric-sequencer/2d';
+   
+   // After
+   import { reconcileScene2D, reconcile_animationState2D, ... } from 'hw-ts-parametric-sequencer/2d';
+   ```
 
 ## Documentation
 
@@ -194,16 +218,26 @@ For comprehensive documentation, see [AGENTS.md](./AGENTS.md).
 
 ## API Overview
 
-### Sequencer (2D and 3D)
+### Core Functions (2D and 3D)
 
-Both `Sequencer2D` and `Sequencer3D` have identical lifecycle APIs:
+The library provides functional APIs for both 2D and 3D:
 
-- `loadScene(scene: SceneDefinition)`: Loads and reconciles a scene definition
-- `play()`: Starts animation playback
-- `pause()`: Pauses animation
-- `stop()`: Stops and resets animation
-- `setTime(time: number)`: Seeks to a specific time
-- `getAnimationState()`: Gets current animation state snapshot
+**2D:**
+- `reconcileScene2D(scene: SceneDefinition2D)`: Reconciles a scene and returns keyframes + duration
+- `reconcile_animationState2D(reconciled, time: number)`: Gets animation state at a specific time
+- `reconcileKeyframes2D(scene)`: Core reconciliation function (lower-level)
+- `keyframes_getSceneDuration2D(reconciled)`: Gets scene duration
+
+**3D:**
+- `reconcileScene(scene: SceneDefinition3D)`: Reconciles a scene and returns keyframes + duration
+- `reconcile_animationState(reconciled, time: number)`: Gets animation state at a specific time
+- `reconcileKeyframes(scene)`: Core reconciliation function (lower-level)
+- `keyframes_getSceneDuration(reconciled)`: Gets scene duration
+
+**Usage Pattern:**
+1. Define your scene as an array of nodes
+2. Call `reconcileScene()` once to process the scene
+3. Call `reconcile_animationState()` with your own timestamps in your animation loop
 
 ### Node Types
 

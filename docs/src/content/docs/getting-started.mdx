@@ -18,13 +18,13 @@ The library provides separate entry points for 2D and 3D functionality:
 ### 3D Animations
 
 ```typescript
-import { Sequencer3D, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, NodeCamera, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 ```
 
 ### 2D Animations
 
 ```typescript
-import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 ```
 
 **Important**: There is no default/root export. You must explicitly import from `/2d` or `/3d`.
@@ -34,7 +34,7 @@ import { Sequencer2D, NodeMain2D, NodeCamera2D, Vector2, SceneObject2D } from 'h
 ### 3D Example
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
 // Create a scene object
 const object1 = new SceneObject(
@@ -56,31 +56,33 @@ const scene = [
   })
 ];
 
-// Create sequencer
-const sequencer = new Sequencer3D({
-  onUpdate: (state) => {
-    // Update your 3D scene with state.models and state.camera
-    state.models.forEach((modelState, modelID) => {
-      updateModelPosition(modelID, modelState.position);
-      updateModelRotation(modelID, modelState.rotation);
-      updateModelOpacity(modelID, modelState.opacity);
-    });
-    updateCamera(state.camera);
-  },
-  onComplete: () => {
-    console.log('Animation complete!');
-  }
-});
+// Reconcile the scene (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene(scene);
 
-// Load and play
-sequencer.loadScene(scene);
-sequencer.play();
+// Your own animation loop
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  // Update your 3D scene with state.models and state.camera
+  state.models.forEach((modelState, modelID) => {
+    updateModelPosition(modelID, modelState.position);
+    updateModelRotation(modelID, modelState.rotation);
+    updateModelOpacity(modelID, modelState.opacity);
+  });
+  updateCamera(state.camera);
+}
+
+animate();
 ```
 
 ### 2D Example
 
 ```typescript
-import { Sequencer2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
 // Create a scene object
 const object1 = new SceneObject2D(
@@ -103,22 +105,28 @@ const scene = [
   })
 ];
 
-// Create sequencer
-const sequencer = new Sequencer2D({
-  onUpdate: (state) => {
-    // Update your 2D scene
-    state.models.forEach((modelState, modelID) => {
-      updateModelPosition(modelID, modelState.position);
-      updateModelAngle(modelID, modelState.rotation);
-      updateModelOpacity(modelID, modelState.opacity);
-      updateModelScale(modelID, modelState.scale);
-    });
-    updateCamera(state.camera);
-  }
-});
+// Reconcile the scene (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene2D(scene);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Your own animation loop
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState2D(reconciled, currentTime);
+  
+  // Update your 2D scene
+  state.models.forEach((modelState, modelID) => {
+    updateModelPosition(modelID, modelState.position);
+    updateModelAngle(modelID, modelState.rotation);
+    updateModelOpacity(modelID, modelState.opacity);
+    updateModelScale(modelID, modelState.scale);
+  });
+  updateCamera(state.camera);
+}
+
+animate();
 ```
 
 ## Next Steps

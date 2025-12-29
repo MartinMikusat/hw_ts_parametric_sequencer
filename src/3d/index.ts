@@ -8,8 +8,8 @@ export * from './lib/types/types_sceneModel';
 // 3D Reconciliation (nodes, keyframes, animation state)
 export * from './lib/reconciliation';
 
-// 3D Sequencer
-export { Sequencer3D, type SceneDefinition3D, type SequencerOptions3D } from './lib/Sequencer';
+// 3D Scene reconciliation convenience function
+export { reconcileScene, type SceneDefinition3D, type ReconciledScene3D } from './lib/reconcileScene';
 
 // Re-export animation state types for convenience
 export type {

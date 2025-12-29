@@ -50,22 +50,28 @@ Animation Snapshot (models + camera state)
 
 ### Core Components
 
-#### 1. **Sequencer Class** (`src/lib/Sequencer.ts`)
-The main public API for the library. Manages animation playback, timing, and state updates.
+#### 1. **Reconciliation Functions** (`src/lib/reconciliation/`)
+The main public API for the library. Provides functional APIs for reconciling scenes and calculating animation states at any point in time.
 
-**Key Methods:**
-- `loadScene(scene: SceneDefinition)`: Loads and reconciles a scene definition
-- `play()`: Starts animation playback
-- `pause()`: Pauses animation
-- `stop()`: Stops and resets animation
-- `setTime(time: number)`: Seeks to a specific time
-- `getAnimationState()`: Gets current animation state snapshot
+**Key Functions:**
+- `reconcileScene(scene: SceneDefinition)`: Reconciles a scene and returns keyframes + duration (convenience function)
+- `reconcileKeyframes(scene: SceneDefinition)`: Core reconciliation function (lower-level)
+- `reconcile_animationState(reconciled, time: number)`: Gets animation state at a specific time
+- `keyframes_getSceneDuration(reconciled)`: Gets scene duration
 
-**Properties:**
-- `duration`: Total duration of the loaded scene
-- `time`: Current playback time
-- `isPlaying`: Whether animation is currently playing
-- `sceneObjects`: Set of SceneObject instances in the scene
+**Usage Pattern:**
+```typescript
+// 1. Define scene
+const scene: SceneDefinition3D = [/* nodes */];
+
+// 2. Reconcile once
+const reconciled = reconcileScene(scene);
+
+// 3. Get state at any time (user controls timing)
+const state = reconcile_animationState(reconciled, currentTime);
+```
+
+**Note:** The library does not provide playback functionality. Users implement their own animation loops and call `reconcile_animationState()` with their own timestamps.
 
 #### 2. **Node System** (`src/lib/reconciliation/nodes/`)
 Nodes represent declarative animation instructions. Each node type generates keyframes when reconciled.
@@ -203,20 +209,28 @@ const scene: SceneDefinition = [
 ];
 ```
 
-### 2. Loading and Playback
+### 2. Reconciliation and State Calculation
 ```typescript
-const sequencer = new Sequencer({
-  onUpdate: (snapshot) => {
-    // Update 3D scene with snapshot.models and snapshot.camera
-  },
-  onComplete: () => {
-    console.log('Animation complete');
-  },
-  loop: false
-});
+// Reconcile the scene once (processes nodes, resolves timing dependencies)
+const reconciled = reconcileScene(scene);
+console.log(`Scene duration: ${reconciled.duration}s`);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// User's own animation loop - get state at any time
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  // Update 3D scene with state.models and state.camera
+  state.models.forEach((modelState, modelID) => {
+    // Apply modelState.position, modelState.rotation, modelState.opacity
+  });
+  // Apply state.camera (rotationX, rotationY, target, zoom)
+}
+
+animate();
 ```
 
 ### 3. Animation Snapshot Structure

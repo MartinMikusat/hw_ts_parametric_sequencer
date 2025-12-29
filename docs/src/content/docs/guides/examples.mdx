@@ -6,7 +6,7 @@ description: Code examples and integration patterns
 ## Three.js Integration
 
 ```typescript
-import { Sequencer3D, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { reconcileScene, reconcile_animationState, NodeMain, Vector3, Euler, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 import * as THREE from 'three';
 
 const scene = new THREE.Scene();
@@ -34,47 +34,47 @@ const animationScene = [
   })
 ];
 
-// Create sequencer
-const sequencer = new Sequencer3D({
-  onUpdate: (state) => {
-    const modelState = state.models.get('box1');
-    if (modelState) {
-      // Update mesh position
-      mesh.position.set(
-        modelState.position.x,
-        modelState.position.y,
-        modelState.position.z
-      );
-      
-      // Update mesh rotation (convert quaternion to Three.js)
-      mesh.quaternion.set(
-        modelState.rotation.x,
-        modelState.rotation.y,
-        modelState.rotation.z,
-        modelState.rotation.w
-      );
-      
-      // Update material opacity
-      material.opacity = modelState.opacity;
-      material.transparent = modelState.opacity < 1;
-    }
-    
-    // Update camera
-    camera.position.set(
-      state.camera.target.x,
-      state.camera.target.y + 5,
-      state.camera.target.z + 10
-    );
-    camera.lookAt(state.camera.target.x, state.camera.target.y, state.camera.target.z);
-  }
-});
+// Reconcile the scene once
+const reconciled = reconcileScene(animationScene);
 
-sequencer.loadScene(animationScene);
-sequencer.play();
-
-// Render loop
+// Animation loop
+let startTime = Date.now();
 function animate() {
   requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState(reconciled, currentTime);
+  
+  const modelState = state.models.get('box1');
+  if (modelState) {
+    // Update mesh position
+    mesh.position.set(
+      modelState.position.x,
+      modelState.position.y,
+      modelState.position.z
+    );
+    
+    // Update mesh rotation (convert quaternion to Three.js)
+    mesh.quaternion.set(
+      modelState.rotation.x,
+      modelState.rotation.y,
+      modelState.rotation.z,
+      modelState.rotation.w
+    );
+    
+    // Update material opacity
+    material.opacity = modelState.opacity;
+    material.transparent = modelState.opacity < 1;
+  }
+  
+  // Update camera
+  camera.position.set(
+    state.camera.target.x,
+    state.camera.target.y + 5,
+    state.camera.target.z + 10
+  );
+  camera.lookAt(state.camera.target.x, state.camera.target.y, state.camera.target.z);
+  
   renderer.render(scene, camera);
 }
 animate();
@@ -83,7 +83,7 @@ animate();
 ## Canvas 2D Integration
 
 ```typescript
-import { Sequencer2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -104,40 +104,48 @@ const scene = [
   })
 ];
 
-const sequencer = new Sequencer2D({
-  onUpdate: (state) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    state.models.forEach((modelState, modelID) => {
-      ctx.save();
-      
-      // Apply transformations
-      ctx.translate(modelState.position.x, modelState.position.y);
-      ctx.rotate(modelState.rotation * Math.PI / 180);
-      ctx.scale(modelState.scale, modelState.scale);
-      ctx.globalAlpha = modelState.opacity;
-      
-      // Draw your sprite
-      ctx.fillStyle = '#00ff00';
-      ctx.fillRect(-10, -10, 20, 20);
-      
-      ctx.restore();
-    });
-  }
-});
+// Reconcile the scene once
+const reconciled = reconcileScene2D(scene);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Animation loop
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState2D(reconciled, currentTime);
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  state.models.forEach((modelState, modelID) => {
+    ctx.save();
+    
+    // Apply transformations
+    ctx.translate(modelState.position.x, modelState.position.y);
+    ctx.rotate(modelState.rotation * Math.PI / 180);
+    ctx.scale(modelState.scale, modelState.scale);
+    ctx.globalAlpha = modelState.opacity;
+    
+    // Draw your sprite
+    ctx.fillStyle = '#00ff00';
+    ctx.fillRect(-10, -10, 20, 20);
+    
+    ctx.restore();
+  });
+}
+animate();
 ```
 
 ## React Integration
 
 ```typescript
-import { useEffect, useRef } from 'react';
-import { Sequencer3D, NodeMain, Vector3, SceneObject } from 'hw-ts-parametric-sequencer/3d';
+import { useEffect, useRef, useState } from 'react';
+import { reconcileScene, reconcile_animationState, NodeMain, Vector3, SceneObject } from 'hw-ts-parametric-sequencer/3d';
 
 function AnimatedScene() {
-  const sequencerRef = useRef<Sequencer3D | null>(null);
+  const [animationState, setAnimationState] = useState<any>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  const reconciledRef = useRef<any>(null);
   
   useEffect(() => {
     const object = new SceneObject('object1', {});
@@ -153,20 +161,22 @@ function AnimatedScene() {
       })
     ];
     
-    const sequencer = new Sequencer3D({
-      onUpdate: (state) => {
-        // Update React state or trigger re-render
-        // You can use useState here to store the animation state
-      }
-    });
+    // Reconcile once
+    reconciledRef.current = reconcileScene(scene);
+    startTimeRef.current = Date.now();
     
-    sequencer.loadScene(scene);
-    sequencer.play();
+    // Animation loop
+    function animate() {
+      const currentTime = (Date.now() - startTimeRef.current) / 1000;
+      const state = reconcile_animationState(reconciledRef.current, currentTime);
+      setAnimationState(state);
+      requestAnimationFrame(animate);
+    }
     
-    sequencerRef.current = sequencer;
+    const animationId = requestAnimationFrame(animate);
     
     return () => {
-      sequencer.stop();
+      cancelAnimationFrame(animationId);
     };
   }, []);
   

@@ -18,7 +18,7 @@ The 2D animation system provides a simplified API for 2D scenes with position, a
 ## Basic 2D Animation
 
 ```typescript
-import { Sequencer2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
+import { reconcileScene2D, reconcile_animationState2D, NodeMain2D, Vector2, SceneObject2D } from 'hw-ts-parametric-sequencer/2d';
 
 const object = new SceneObject2D('sprite1', {});
 
@@ -36,23 +36,29 @@ const scene = [
   })
 ];
 
-const sequencer = new Sequencer2D({
-  onUpdate: (state) => {
-    state.models.forEach((modelState, modelID) => {
-      // Update your 2D rendering
-      drawSprite(modelID, {
-        x: modelState.position.x,
-        y: modelState.position.y,
-        angle: modelState.rotation,
-        opacity: modelState.opacity,
-        scale: modelState.scale
-      });
-    });
-  }
-});
+// Reconcile the scene once
+const reconciled = reconcileScene2D(scene);
 
-sequencer.loadScene(scene);
-sequencer.play();
+// Your animation loop
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const currentTime = (Date.now() - startTime) / 1000;
+  const state = reconcile_animationState2D(reconciled, currentTime);
+  
+  state.models.forEach((modelState, modelID) => {
+    // Update your 2D rendering
+    drawSprite(modelID, {
+      x: modelState.position.x,
+      y: modelState.position.y,
+      angle: modelState.rotation,
+      opacity: modelState.opacity,
+      scale: modelState.scale
+    });
+  });
+}
+animate();
 ```
 
 ## Camera Animation

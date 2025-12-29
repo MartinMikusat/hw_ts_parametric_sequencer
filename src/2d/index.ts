@@ -9,8 +9,8 @@ export * from './lib/types/types_animationState';
 // 2D Reconciliation (nodes, keyframes, animation state)
 export * from './lib/reconciliation';
 
-// 2D Sequencer
-export { Sequencer2D, type SceneDefinition2D, type SequencerOptions2D } from './lib/Sequencer2D';
+// 2D Scene reconciliation convenience function
+export { reconcileScene2D, type SceneDefinition2D, type ReconciledScene2D } from './lib/reconcileScene2D';
 
 // Re-export animation state types for convenience
 export type {
