@@ -1,7 +1,7 @@
 import { Vector2 } from '../../math/Vector2';
 import { shortestArcInterpolation } from '../../math/angle';
 import type { type_keyframes_reconciledTimeExtended_camera2D, type_keyframes_reconciledTimeExtended_model2D } from '../keyframes/02_reconcileKeyframes_expandTime';
-import type { type_separatedKeyframes_extended2D, type_keyframe_camera2D, type_keyframe_model2D, type_keyframe_position2D } from '../keyframes/types';
+import type { type_separatedKeyframes_extended2D, type_keyframe_camera2D, type_keyframe_model2D, type_keyframe_position2D, type_customProperty_interpolation } from '../keyframes/types';
 import type { ModelAnimationState2D, CameraAnimationState2D } from '../../types/types_animationState';
 import type { AnimationSnapshot2D } from '../../types/types_animationState';
 
@@ -23,6 +23,34 @@ const defaultCameraState: CameraAnimationState2D = {
  */
 const lerp = (start: number, end: number, t: number): number => {
 	return start + (end - start) * t;
+};
+
+/**
+ * Interpolates a custom property value based on the specified interpolation method.
+ * 
+ * @param previousValue The current value of the property
+ * @param targetValue The target value to interpolate towards
+ * @param progression The interpolation progress (0 to 1)
+ * @param interpolation The interpolation method to use ('linear' or 'step')
+ * @returns The interpolated value
+ * 
+ * @remarks
+ * - 'linear': Smoothly interpolates between previous and target values
+ * - 'step': Returns previous value until progression reaches 1.0, then returns target value
+ * 
+ * @internal
+ */
+const interpolateCustomProperty = (
+	previousValue: number,
+	targetValue: number,
+	progression: number,
+	interpolation: type_customProperty_interpolation = 'linear'
+): number => {
+	if (interpolation === 'step') {
+		return progression >= 1.0 ? targetValue : previousValue;
+	}
+	// linear (default)
+	return lerp(previousValue, targetValue, progression);
 };
 
 /**
@@ -167,6 +195,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 				position: new Vector2(0.0, 0.0),
 				rotation: 0.0,
 				scale: 1.0,
+				custom: {},
 			});
 		}
 	});
@@ -211,6 +240,22 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			nextScale = lerp(previousState.scale, modelKeyframe.scale, clampedKeyframeProgression);
 		}
 
+		// --- Process Custom Properties ---
+		const nextCustom = { ...previousState.custom };
+		if (modelKeyframe.custom) {
+			Object.entries(modelKeyframe.custom).forEach(([key, definition]) => {
+				const previousValue = previousState.custom[key] ?? 0; // Default to 0 if not set
+				const targetValue = definition.value;
+				const interpolation = definition.interpolation ?? 'linear';
+				nextCustom[key] = interpolateCustomProperty(
+					previousValue,
+					targetValue,
+					clampedKeyframeProgression,
+					interpolation
+				);
+			});
+		}
+
 		// --- Calculate Final Position, considering Markers ---
 		let finalPosition = previousState.position.clone();
 		let finalRotation = nextRotation;
@@ -250,6 +295,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			position: finalPosition,
 			rotation: finalRotation,
 			scale: finalScale,
+			custom: nextCustom,
 		};
 		modelStates.set(sceneObjectID, nextState);
 	});

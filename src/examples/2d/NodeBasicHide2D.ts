@@ -1,5 +1,5 @@
 import type { SceneObject2D } from '../../2d/lib/types/types_sceneModel';
-import type { type_keyframe_model2D, type_time } from '../../2d/lib/reconciliation/keyframes/types';
+import type { type_keyframe_model2D, type_time, type_custom } from '../../2d/lib/reconciliation/keyframes/types';
 
 export interface NodeBasicHide2DProps {
 	name: string;
@@ -7,6 +7,7 @@ export interface NodeBasicHide2DProps {
 	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
+	custom?: type_custom;
 }
 
 export class NodeBasicHide2D {
@@ -15,6 +16,7 @@ export class NodeBasicHide2D {
 	sceneObject: SceneObject2D;
 	duration: number;
 	time: type_time;
+	custom?: type_custom;
 
 	constructor(props: NodeBasicHide2DProps) {
 		this.name = props.name;
@@ -22,6 +24,7 @@ export class NodeBasicHide2D {
 		this.sceneObject = props.sceneObject;
 		this.duration = props.duration;
 		this.time = props.time;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -46,6 +49,7 @@ export class NodeBasicHide2D {
 				time: this.time,
 				opacity: 0.0,
 				duration: this.duration,
+				custom: this.custom,
 				chapter: this.chapter,
 			},
 		];

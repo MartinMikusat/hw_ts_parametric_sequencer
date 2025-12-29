@@ -1,6 +1,6 @@
 import { Euler, Quaternion, Vector3 } from '../../math';
 import type { type_keyframes_reconciledTimeExtended_camera, type_keyframes_reconciledTimeExtended_model } from '../keyframes/02_reconcileKeyframes_expandTime';
-import type { type_separatedKeyframes_extended, type_keyframe_camera, type_keyframe_model, type_keyframe_position } from '../keyframes/types';
+import type { type_separatedKeyframes_extended, type_keyframe_camera, type_keyframe_model, type_keyframe_position, type_customProperty_interpolation } from '../keyframes/types';
 
 // Constant for float comparisons
 const EPSILON = 1e-6;
@@ -10,7 +10,7 @@ const EPSILON = 1e-6;
  * 
  * @remarks
  * This state is calculated by interpolating between keyframes based on the current time.
- * All values are interpolated smoothly using linear interpolation for positions/opacity
+ * All values are interpolated smoothly using linear interpolation for positions/opacity/custom properties
  * and spherical linear interpolation (SLERP) for rotations.
  */
 export interface ModelAnimationState3D {
@@ -39,6 +39,20 @@ export interface ModelAnimationState3D {
 	 * @internal
 	 */
 	cumulativeModelRotation: Quaternion;
+	
+	/** 
+	 * Custom animated properties defined by the user.
+	 * Each property is interpolated according to its specified interpolation method (linear or step).
+	 * Properties persist across keyframes until explicitly changed.
+	 * 
+	 * @example
+	 * ```typescript
+	 * // Access custom properties from animation state
+	 * const brightness = modelState.custom.brightness ?? 1.0;
+	 * const intensity = modelState.custom.intensity ?? 0.5;
+	 * ```
+	 */
+	custom: Record<string, number>;
 }
 
 /**
@@ -98,7 +112,8 @@ export interface CameraAnimationState3D {
  *     updateModel(modelID, {
  *       position: modelState.position,
  *       rotation: modelState.rotation,
- *       opacity: modelState.opacity
+ *       opacity: modelState.opacity,
+ *       brightness: modelState.custom.brightness ?? 1.0
  *     });
  *   });
  *   
@@ -139,6 +154,34 @@ const defaultCameraState: CameraAnimationState3D = {
  */
 const lerp = (start: number, end: number, t: number): number => {
 	return start + (end - start) * t;
+};
+
+/**
+ * Interpolates a custom property value based on the specified interpolation method.
+ * 
+ * @param previousValue The current value of the property
+ * @param targetValue The target value to interpolate towards
+ * @param progression The interpolation progress (0 to 1)
+ * @param interpolation The interpolation method to use ('linear' or 'step')
+ * @returns The interpolated value
+ * 
+ * @remarks
+ * - 'linear': Smoothly interpolates between previous and target values
+ * - 'step': Returns previous value until progression reaches 1.0, then returns target value
+ * 
+ * @internal
+ */
+const interpolateCustomProperty = (
+	previousValue: number,
+	targetValue: number,
+	progression: number,
+	interpolation: type_customProperty_interpolation = 'linear'
+): number => {
+	if (interpolation === 'step') {
+		return progression >= 1.0 ? targetValue : previousValue;
+	}
+	// linear (default)
+	return lerp(previousValue, targetValue, progression);
 };
 
 /**
@@ -323,6 +366,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 				position: new Vector3(0.0, 0.0, 0.0),
 				rotation: new Quaternion(),
 				cumulativeModelRotation: new Quaternion(),
+				custom: {},
 			});
 		}
 	});
@@ -367,6 +411,22 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			nextCumulativeRotation = rotationResult.nextCumulativeRotation;
 		}
 
+		// --- Process Custom Properties ---
+		const nextCustom = { ...previousState.custom };
+		if (modelKeyframe.custom) {
+			Object.entries(modelKeyframe.custom).forEach(([key, definition]) => {
+				const previousValue = previousState.custom[key] ?? 0; // Default to 0 if not set
+				const targetValue = definition.value;
+				const interpolation = definition.interpolation ?? 'linear';
+				nextCustom[key] = interpolateCustomProperty(
+					previousValue,
+					targetValue,
+					clampedKeyframeProgression,
+					interpolation
+				);
+			});
+		}
+
 		// --- Calculate Final Position, considering Markers ---
 		let finalPosition = previousState.position.clone();
 		let finalRotation = nextRotation;
@@ -407,6 +467,7 @@ const _reconcileModelStates = (keyframes: Array<type_keyframes_reconciledTimeExt
 			position: finalPosition,
 			rotation: finalRotation,
 			cumulativeModelRotation: finalCumulativeRotation,
+			custom: nextCustom,
 		};
 		modelStates.set(sceneObjectID, nextState);
 	});

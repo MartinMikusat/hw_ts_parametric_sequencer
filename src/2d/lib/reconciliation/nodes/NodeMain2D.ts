@@ -1,5 +1,5 @@
 import type { SceneObject2D } from '../../types/types_sceneModel';
-import type { type_keyframe_model2D, type_keyframe_position2D, type_keyframe_rotation2D, type_time } from '../keyframes/types';
+import type { type_keyframe_model2D, type_keyframe_position2D, type_keyframe_rotation2D, type_time, type_custom } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeMain2D instance.
@@ -54,12 +54,27 @@ export interface NodeMain2DProps {
 	 * Optional scale factor. Values > 1 enlarge, values < 1 shrink.
 	 */
 	scale?: number;
+
+	/** 
+	 * Optional custom properties to animate.
+	 * Each property can specify its own interpolation method (linear or step).
+	 * Properties persist across keyframes until explicitly changed.
+	 * 
+	 * @example
+	 * ```typescript
+	 * custom: {
+	 *   brightness: { value: 1.5, interpolation: 'linear' },
+	 *   intensity: { value: 0.8 }
+	 * }
+	 * ```
+	 */
+	custom?: type_custom;
 }
 
 /**
  * Represents a main animation node for 2D objects.
  * 
- * NodeMain2D is used to animate an object's position, angle, opacity, and/or scale over time.
+ * NodeMain2D is used to animate an object's position, angle, opacity, scale, and/or custom properties over time.
  * It's the most commonly used node type for basic 2D object animations.
  * 
  * @example
@@ -75,6 +90,19 @@ export interface NodeMain2DProps {
  *   opacity: 1.0,
  *   scale: 1.5
  * });
+ * 
+ * // Animate custom properties
+ * const nodeWithCustom = new NodeMain2D({
+ *   name: 'sprite-glow',
+ *   chapter: 'intro',
+ *   sceneObject: spriteObject,
+ *   time: { type: 'absolute', value: 1 },
+ *   duration: 2,
+ *   custom: {
+ *     glowIntensity: { value: 2.0, interpolation: 'linear' },
+ *     pulseSpeed: { value: 1.5 }
+ *   }
+ * });
  * ```
  */
 export class NodeMain2D {
@@ -87,6 +115,7 @@ export class NodeMain2D {
 	rotation?: type_keyframe_rotation2D;
 	opacity?: number;
 	scale?: number;
+	custom?: type_custom;
 
 	constructor(props: NodeMain2DProps) {
 		this.name = props.name;
@@ -98,6 +127,7 @@ export class NodeMain2D {
 		this.rotation = props.rotation;
 		this.opacity = props.opacity;
 		this.scale = props.scale;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -129,6 +159,7 @@ export class NodeMain2D {
 				rotation: this.rotation,
 				opacity: this.opacity,
 				scale: this.scale,
+				custom: this.custom,
 				chapter: this.chapter,
 			},
 		];

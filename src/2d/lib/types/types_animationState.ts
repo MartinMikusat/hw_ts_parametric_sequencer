@@ -5,7 +5,7 @@ import type { Vector2 } from '../math/Vector2';
  * 
  * @remarks
  * This state is calculated by interpolating between keyframes based on the current time.
- * All values are interpolated smoothly using linear interpolation for positions/opacity/scale
+ * All values are interpolated smoothly using linear interpolation for positions/opacity/scale/custom properties
  * and shortest-arc interpolation for angles.
  */
 export interface ModelAnimationState2D {
@@ -33,6 +33,20 @@ export interface ModelAnimationState2D {
 	 * Defaults to 1 if not specified.
 	 */
 	scale: number;
+	
+	/** 
+	 * Custom animated properties defined by the user.
+	 * Each property is interpolated according to its specified interpolation method (linear or step).
+	 * Properties persist across keyframes until explicitly changed.
+	 * 
+	 * @example
+	 * ```typescript
+	 * // Access custom properties from animation state
+	 * const brightness = modelState.custom.brightness ?? 1.0;
+	 * const intensity = modelState.custom.intensity ?? 0.5;
+	 * ```
+	 */
+	custom: Record<string, number>;
 }
 
 /**
@@ -85,7 +99,8 @@ export interface CameraAnimationState2D {
  *       position: modelState.position,
  *       angle: modelState.rotation,
  *       opacity: modelState.opacity,
- *       scale: modelState.scale
+ *       scale: modelState.scale,
+ *       brightness: modelState.custom.brightness ?? 1.0
  *     });
  *   });
  *   

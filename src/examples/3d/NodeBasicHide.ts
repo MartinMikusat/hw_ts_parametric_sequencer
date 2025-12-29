@@ -1,6 +1,6 @@
 import { Euler, Vector3 } from '../../3d/lib/math';
 import type { SceneObject } from '../../3d/lib/types/types_sceneModel';
-import type { type_keyframe_model, type_time } from '../../3d/lib/reconciliation/keyframes/types';
+import type { type_keyframe_model, type_time, type_custom } from '../../3d/lib/reconciliation/keyframes/types';
 
 /**
  * Properties required to create a NodeBasicHide instance.
@@ -42,6 +42,11 @@ export interface NodeBasicHideProps {
 	 * Optional rotation offset to apply while hiding. Defaults to (0, 0, 0).
 	 */
 	offsetRotation?: Euler;
+
+	/** 
+	 * Optional custom properties to animate.
+	 */
+	custom?: type_custom;
 }
 
 /**
@@ -75,6 +80,7 @@ export class NodeBasicHide {
 	time: type_time;
 	offsetPosition: Vector3;
 	offsetRotation: Euler;
+	custom?: type_custom;
 
 	constructor(props: NodeBasicHideProps) {
 		this.name = props.name;
@@ -84,6 +90,7 @@ export class NodeBasicHide {
 		this.time = props.time;
 		this.offsetPosition = props.offsetPosition ?? new Vector3(0, 0, 0);
 		this.offsetRotation = props.offsetRotation ?? new Euler(0, 0, 0);
+		this.custom = props.custom;
 	}
 
 	/**
@@ -122,6 +129,7 @@ export class NodeBasicHide {
 					type: 'relative',
 					value: rotation,
 				},
+				custom: this.custom,
 				chapter: this.chapter,
 			},
 		];

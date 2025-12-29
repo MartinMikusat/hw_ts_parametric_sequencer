@@ -1,6 +1,6 @@
 import { Vector2 } from '../../2d/lib/math/Vector2';
 import type { SceneObject2D } from '../../2d/lib/types/types_sceneModel';
-import type { type_keyframe_model2D, type_time } from '../../2d/lib/reconciliation/keyframes/types';
+import type { type_keyframe_model2D, type_time, type_custom } from '../../2d/lib/reconciliation/keyframes/types';
 
 export interface NodeBasicReveal2DProps {
 	name: string;
@@ -11,6 +11,7 @@ export interface NodeBasicReveal2DProps {
 	startingPosition: Vector2;
 	startingRotation: number; // Angle in degrees
 	startingScale?: number;
+	custom?: type_custom;
 }
 
 export class NodeBasicReveal2D {
@@ -22,6 +23,7 @@ export class NodeBasicReveal2D {
 	startingPosition: Vector2;
 	startingRotation: number;
 	startingScale: number;
+	custom?: type_custom;
 
 	constructor(props: NodeBasicReveal2DProps) {
 		this.name = props.name;
@@ -32,6 +34,7 @@ export class NodeBasicReveal2D {
 		this.startingPosition = props.startingPosition;
 		this.startingRotation = props.startingRotation;
 		this.startingScale = props.startingScale ?? 1.0;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -74,6 +77,7 @@ export class NodeBasicReveal2D {
 				time: this.time, // Reveal starts at the same time
 				opacity: 1.0,
 				duration: this.duration, // Use the node's duration for the reveal
+				custom: this.custom,
 				chapter: this.chapter,
 				// Position, rotation, and scale are inherited from the previous keyframe unless specified
 			},

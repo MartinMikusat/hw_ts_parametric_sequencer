@@ -1,5 +1,5 @@
 import type { SceneObject } from '../../types/types_sceneModel';
-import type { type_keyframe_model, type_keyframe_position, type_keyframe_rotation, type_time } from '../keyframes/types';
+import type { type_keyframe_model, type_keyframe_position, type_keyframe_rotation, type_time, type_custom } from '../keyframes/types';
 
 /**
  * Properties required to create a NodeMain instance.
@@ -53,12 +53,27 @@ export interface NodeMainProps {
 	 * If not specified, the object's opacity remains unchanged.
 	 */
 	opacity?: number;
+
+	/** 
+	 * Optional custom properties to animate.
+	 * Each property can specify its own interpolation method (linear or step).
+	 * Properties persist across keyframes until explicitly changed.
+	 * 
+	 * @example
+	 * ```typescript
+	 * custom: {
+	 *   brightness: { value: 1.5, interpolation: 'linear' },
+	 *   intensity: { value: 0.8 }
+	 * }
+	 * ```
+	 */
+	custom?: type_custom;
 }
 
 /**
  * Represents a main animation node for 3D objects.
  * 
- * NodeMain is used to animate an object's position, rotation, and/or opacity over time.
+ * NodeMain is used to animate an object's position, rotation, opacity, and/or custom properties over time.
  * It's the most commonly used node type for basic object animations.
  * 
  * @remarks
@@ -91,6 +106,19 @@ export interface NodeMainProps {
  *   duration: 1,
  *   opacity: 0
  * });
+ * 
+ * // Animate custom properties (e.g., brightness for a light)
+ * const node3 = new NodeMain({
+ *   name: 'light-brighten',
+ *   chapter: 'intro',
+ *   sceneObject: lightObject,
+ *   time: { type: 'absolute', value: 2 },
+ *   duration: 1.5,
+ *   custom: {
+ *     brightness: { value: 1.5, interpolation: 'linear' },
+ *     intensity: { value: 0.8 }
+ *   }
+ * });
  * ```
  */
 export class NodeMain {
@@ -102,6 +130,7 @@ export class NodeMain {
 	position?: type_keyframe_position;
 	rotation?: type_keyframe_rotation;
 	opacity?: number;
+	custom?: type_custom;
 
 	constructor(props: NodeMainProps) {
 		this.name = props.name;
@@ -112,6 +141,7 @@ export class NodeMain {
 		this.position = props.position;
 		this.rotation = props.rotation;
 		this.opacity = props.opacity;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -159,6 +189,7 @@ export class NodeMain {
 				position: this.position,
 				rotation: this.rotation,
 				opacity: this.opacity,
+				custom: this.custom,
 				chapter: this.chapter,
 			},
 		];

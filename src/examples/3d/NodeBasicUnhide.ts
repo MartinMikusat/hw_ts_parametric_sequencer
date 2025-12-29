@@ -1,6 +1,6 @@
 import { Euler, Vector3 } from '../../3d/lib/math';
 import type { SceneObject } from '../../3d/lib/types/types_sceneModel';
-import type { type_keyframe_model, type_time } from '../../3d/lib/reconciliation/keyframes/types';
+import type { type_keyframe_model, type_time, type_custom } from '../../3d/lib/reconciliation/keyframes/types';
 
 /**
  * Properties required to create a NodeBasicUnhide instance.
@@ -12,36 +12,41 @@ export interface NodeBasicUnhideProps {
 	 * Unique identifier for this node. Used as the keyframe ID and for relative timing references.
 	 */
 	name: string;
-	
+
 	/** 
 	 * Chapter identifier for organizing animations into logical groups.
 	 */
 	chapter: string;
-	
+
 	/** 
 	 * The SceneObject instance to unhide.
 	 */
 	sceneObject: SceneObject;
-	
+
 	/** 
 	 * Duration of the unhide animation in seconds.
 	 */
 	duration: number;
-	
+
 	/** 
 	 * Timing specification for when this unhide animation starts.
 	 */
 	time: type_time;
-	
+
 	/** 
 	 * Position offset to apply when unhiding.
 	 */
 	offsetPosition: Vector3;
-	
+
 	/** 
 	 * Rotation offset to apply when unhiding.
 	 */
 	offsetRotation: Euler;
+
+	/** 
+	 * Optional custom properties to animate.
+	 */
+	custom?: type_custom;
 }
 
 /**
@@ -75,6 +80,7 @@ export class NodeBasicUnhide {
 	time: type_time;
 	offsetPosition: Vector3;
 	offsetRotation: Euler;
+	custom?: type_custom;
 
 	constructor(props: NodeBasicUnhideProps) {
 		this.name = props.name;
@@ -84,6 +90,7 @@ export class NodeBasicUnhide {
 		this.time = props.time;
 		this.offsetPosition = props.offsetPosition;
 		this.offsetRotation = props.offsetRotation;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -123,6 +130,7 @@ export class NodeBasicUnhide {
 					type: 'relative',
 					value: rotation,
 				},
+				custom: this.custom,
 				chapter: this.chapter,
 			},
 		];

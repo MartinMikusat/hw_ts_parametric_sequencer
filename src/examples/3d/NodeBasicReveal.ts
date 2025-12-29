@@ -1,6 +1,6 @@
 import { Euler, Vector3 } from '../../3d/lib/math';
 import type { SceneObject } from '../../3d/lib/types/types_sceneModel';
-import type { type_keyframe_model, type_time } from '../../3d/lib/reconciliation/keyframes/types';
+import type { type_keyframe_model, type_time, type_custom } from '../../3d/lib/reconciliation/keyframes/types';
 
 /**
  * Properties required to create a NodeBasicReveal instance.
@@ -42,6 +42,11 @@ export interface NodeBasicRevealProps {
 	 * The starting rotation of the object before it's revealed.
 	 */
 	startingRotation: Euler;
+
+	/** 
+	 * Optional custom properties to animate.
+	 */
+	custom?: type_custom;
 }
 
 /**
@@ -77,6 +82,7 @@ export class NodeBasicReveal {
 	time: type_time;
 	startingPosition: Vector3;
 	startingRotation: Euler;
+	custom?: type_custom;
 
 	constructor(props: NodeBasicRevealProps) {
 		this.name = props.name;
@@ -86,6 +92,7 @@ export class NodeBasicReveal {
 		this.time = props.time;
 		this.startingPosition = props.startingPosition;
 		this.startingRotation = props.startingRotation;
+		this.custom = props.custom;
 	}
 
 	/**
@@ -131,6 +138,7 @@ export class NodeBasicReveal {
 				time: this.time, // Reveal starts at the same time
 				opacity: 1.0,
 				duration: this.duration, // Use the node's duration for the reveal
+				custom: this.custom,
 				chapter: this.chapter,
 				// Position and rotation are inherited from the previous keyframe unless specified
 			},
