@@ -15,6 +15,9 @@ This document outlines the steps for publishing `hw-ts-parametric-sequencer` to 
 - [ ] Version number is correct in `package.json`
 - [ ] `CHANGELOG.md` is updated with new version
 - [ ] `README.md` is complete and accurate
+- [ ] All public APIs have TSDoc comments
+- [ ] Documentation is generated and up to date (`npm run docs:generate`)
+- [ ] Documentation builds successfully (`npm run docs:build`)
 - [ ] License file is present
 - [ ] No sensitive data in the package
 - [ ] `.npmignore` excludes unnecessary files
@@ -26,6 +29,7 @@ This document outlines the steps for publishing `hw-ts-parametric-sequencer` to 
 ```bash
 npm run build
 npm test
+npm run docs:generate  # Ensure documentation is up to date
 ```
 
 ### 2. Update Version
@@ -130,6 +134,17 @@ jobs:
 ## Post-Publishing
 
 1. Create a GitHub release with the same version
-2. Update documentation if needed
-3. Announce the release (if applicable)
+2. Documentation will be automatically deployed (if changes were made to docs)
+3. Verify documentation site is updated
+4. Announce the release (if applicable)
+
+## Documentation
+
+The project includes a documentation site built with Astro and Starlight. The documentation is automatically built and deployed to GitHub Pages on push to `main` branch.
+
+**Documentation workflow:**
+- API documentation is generated from TSDoc comments using TypeDoc
+- Guide pages are written in Markdown/MDX
+- Build process: `npm run docs:generate` → `cd docs && npm run build`
+- See [README.md](./README.md#contributing-to-documentation) for more details on contributing to documentation
 
