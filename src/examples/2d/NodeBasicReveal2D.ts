@@ -1,6 +1,6 @@
-import { Vector2 } from '../../math/Vector2';
-import type { SceneObject2D } from '../../types/types_sceneModel';
-import type { type_keyframe_model2D, type_time } from '../keyframes/types';
+import { Vector2 } from '../../2d/lib/math/Vector2';
+import type { SceneObject2D } from '../../2d/lib/types/types_sceneModel';
+import type { type_keyframe_model2D, type_time } from '../../2d/lib/reconciliation/keyframes/types';
 
 export interface NodeBasicReveal2DProps {
 	name: string;

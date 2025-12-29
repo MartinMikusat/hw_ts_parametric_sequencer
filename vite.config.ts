@@ -5,6 +5,9 @@ import { resolve } from 'path';
 const entries = {
   '3d': resolve(__dirname, 'src/3d/index.ts'),
   '2d': resolve(__dirname, 'src/2d/index.ts'),
+  'examples/3d': resolve(__dirname, 'src/examples/3d/index.ts'),
+  'examples/2d': resolve(__dirname, 'src/examples/2d/index.ts'),
+  'examples': resolve(__dirname, 'src/examples/index.ts'),
 };
 
 export default defineConfig({
@@ -33,7 +36,7 @@ export default defineConfig({
   plugins: [
     dts({
       rollupTypes: true,
-      include: ['src/2d', 'src/3d'],
+      include: ['src/2d', 'src/3d', 'src/examples'],
       outDir: 'dist',
       entryRoot: 'src',
       copyDtsFiles: false,

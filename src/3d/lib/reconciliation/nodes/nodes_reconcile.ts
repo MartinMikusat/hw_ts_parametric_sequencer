@@ -1,8 +1,5 @@
 import type { type_keyframe_camera, type_keyframe_model, type_separatedKeyframes } from '../keyframes/types';
 import type { SceneObject } from '../../types/types_sceneModel';
-import type { NodeBasicHide } from './NodeBasicHide';
-import type { NodeBasicReveal } from './NodeBasicReveal';
-import type { NodeBasicUnhide } from './NodeBasicUnhide';
 import { NodeCamera } from './NodeCamera';
 import type { NodeMain } from './NodeMain';
 import { NodeToMarkerPosition } from './NodeToMarkerPosition';
@@ -10,7 +7,7 @@ import { NodeToMarkerPosition } from './NodeToMarkerPosition';
 /**
  * Union type representing any of the possible node classes used in reconciliation.
  */
-export type type_reconciliation_node = NodeCamera | NodeToMarkerPosition | NodeMain | NodeBasicHide | NodeBasicReveal | NodeBasicUnhide;
+export type type_reconciliation_node = NodeCamera | NodeToMarkerPosition | NodeMain;
 
 /**
  * Union type representing any of the possible keyframe types generated during reconciliation.
@@ -23,7 +20,7 @@ export type type_reconciliation_keyframe = type_keyframe_model | type_keyframe_c
  * It iterates through each node, calls its specific `reconcile` method, and separates
  * the generated keyframes by type for more efficient downstream processing.
  *
- * @param nodes An array of node instances (e.g., NodeBasicReveal, NodeCamera, NodePosition).
+ * @param nodes An array of node instances (e.g., NodeMain, NodeCamera, NodeToMarkerPosition).
  * @returns An object containing separated arrays of model and camera keyframes and scene objects used.
  */
 export const nodes_reconcile = (nodes: Array<type_reconciliation_node>): type_separatedKeyframes & { sceneObjects: Set<SceneObject> } => {

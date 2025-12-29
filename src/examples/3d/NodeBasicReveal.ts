@@ -1,6 +1,6 @@
-import { Euler, Vector3 } from '../../math';
-import type { SceneObject } from '../../types/types_sceneModel';
-import type { type_keyframe_model, type_time } from '../keyframes/types';
+import { Euler, Vector3 } from '../../3d/lib/math';
+import type { SceneObject } from '../../3d/lib/types/types_sceneModel';
+import type { type_keyframe_model, type_time } from '../../3d/lib/reconciliation/keyframes/types';
 
 /**
  * Properties required to create a NodeBasicReveal instance.

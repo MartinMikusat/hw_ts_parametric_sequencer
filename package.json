@@ -14,6 +14,24 @@
         "types": "./dist/2d.d.ts",
         "default": "./dist/2d/index.mjs"
       }
+    },
+    "./examples/3d": {
+      "import": {
+        "types": "./dist/examples/3d.d.ts",
+        "default": "./dist/examples/3d/index.mjs"
+      }
+    },
+    "./examples/2d": {
+      "import": {
+        "types": "./dist/examples/2d.d.ts",
+        "default": "./dist/examples/2d/index.mjs"
+      }
+    },
+    "./examples": {
+      "import": {
+        "types": "./dist/examples.d.ts",
+        "default": "./dist/examples/index.mjs"
+      }
     }
   },
   "files": [
