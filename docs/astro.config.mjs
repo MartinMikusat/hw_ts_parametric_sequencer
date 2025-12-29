@@ -3,16 +3,18 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
+const isProduction = process.env.NODE_ENV === 'production';
 export default defineConfig({
+	base: isProduction ? '/hw_ts_parametric_sequencer/' : '/',
 	integrations: [
 		starlight({
 			title: 'hw-ts-parametric-sequencer',
 			description: 'A framework-agnostic TypeScript library for creating parametric animation sequences',
 			social: [
-				{ 
-					icon: 'github', 
-					label: 'GitHub', 
-					href: 'https://github.com/MartinMikusat/hw_ts_parametric_sequencer' 
+				{
+					icon: 'github',
+					label: 'GitHub',
+					href: 'https://github.com/MartinMikusat/hw_ts_parametric_sequencer'
 				},
 			],
 			sidebar: [
