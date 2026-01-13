@@ -134,13 +134,12 @@ jobs:
 ## Post-Publishing
 
 1. Create a GitHub release with the same version
-2. Documentation will be automatically deployed (if changes were made to docs)
-3. Verify documentation site is updated
-4. Announce the release (if applicable)
+2. Verify documentation site is updated (if applicable)
+3. Announce the release (if applicable)
 
 ## Documentation
 
-The project includes a documentation site built with Astro and Starlight. The documentation is automatically built and deployed to GitHub Pages on push to `main` branch.
+The project includes a documentation site built with Astro and Starlight.
 
 **Documentation workflow:**
 - API documentation is generated from TSDoc comments using TypeDoc

@@ -882,8 +882,6 @@ When adding or modifying public APIs:
 
 #### CI/CD
 
-- GitHub Actions workflow: `.github/workflows/docs.yml`
-- Automatically builds and deploys on push to `main` branch
-- Deploys to GitHub Pages
-- Build order: `install → typedoc → astro build → deploy`
+- Documentation can be built locally using `npm run docs:build`
+- Build order: `install → typedoc → astro build`
 
